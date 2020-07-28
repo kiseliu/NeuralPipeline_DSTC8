@@ -37,7 +37,6 @@ requestables = ['phone', 'reference', 'id', 'postcode']
 
 for d in domains:
     for r in requestables:
-
         if r == 'phone':
             if d in ['restaurant', 'hotel', 'attraction', 'taxi', 'hospital', 'police']:
                 SPECIAL_TOKENS_V1.append('[' + d + '_' + r + ']')
@@ -83,7 +82,6 @@ SPECIAL_TOKENS_V4 += dom_name
 
 for d in domains:
     for r in requestables:
-
         if r == 'phone':
             if d in ['restaurant', 'hotel', 'attraction', 'taxi', 'hospital', 'police']:
                 SPECIAL_TOKENS_V4.append('[' + d + '_' + r + ']')
@@ -140,13 +138,8 @@ def build_input_from_segments_v1(history, reply, tokenizer, dp=[], cs=[], lm_lab
     sequence = [sequence[0]] + [[user if (len(sequence) - i) % 2 else system] + s for i, s in
                                 enumerate(sequence[1:-1])] + sequence[-1:]
 
+    ctx = 1024 if "gpt2" in model else 512
     l = len([i for s in sequence for i in s])
-
-    if "gpt2" in model:
-        ctx = 1024
-    else:
-        ctx = 512
-
     if l > ctx:
         i = 1
         while l > ctx:
@@ -331,7 +324,6 @@ def train():
     train_loader, val_loader, train_sampler, valid_sampler = get_data_loaders(args, tokenizer)
 
     # Training function and trainer
-
     def update(engine, batch):
         model.train()
         batch = tuple(input_tensor.to(args.device) for input_tensor in batch)
@@ -353,7 +345,6 @@ def train():
     trainer._logger.setLevel(logging.INFO)
 
     # Evaluation function and evaluator (evaluator output is the input of the metrics)
-
     def inference(engine, batch):
         model.eval()
         with torch.no_grad():
