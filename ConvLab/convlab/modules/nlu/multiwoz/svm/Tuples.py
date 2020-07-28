@@ -15,46 +15,45 @@ class tuples(object):
         self.acts = json.loads(config.get("grammar", "acts"))
         self.nonempty_acts = json.loads(config.get("grammar", "nonempty_acts"))
         self.nonfull_acts = [act for act in self.acts if act not in self.nonempty_acts]
-        
-        rootpath=os.path.dirname(os.path.abspath(__file__))
+
+        rootpath = os.path.dirname(os.path.abspath(__file__))
         # if "semi" not in rootpath:
         #     rootpath+="/semi/CNetTrain/"
         # else:
         #     rootpath+="/CNetTrain/"
         self.ontology = json.load(
-            open(rootpath+'/'+config.get("grammar", "ontology"))
+            open(rootpath + '/' + config.get("grammar", "ontology"))
         )
-        
+
         self.slots_informable = self.ontology["informable"]
-        self.slots =  self.ontology["requestable"]
-        
+        self.slots = self.ontology["requestable"]
+
         self.slots_enumerated = json.loads(config.get("grammar", "slots_enumerated"))
         self.config = config
         self.all_tuples = self._getAllTuples()
         self.max_active = 10
-        if config.has_option("decode","max_active_tuples") :
-            self.max_active = int(config.get("decode","max_active_tuples"))
-            
+        if config.has_option("decode", "max_active_tuples"):
+            self.max_active = int(config.get("decode", "max_active_tuples"))
+
         self.tail_cutoff = 0.001
-        if config.has_option("decode","tail_cutoff") :
-            self.tail_cutoff = float(config.get("decode","tail_cutoff"))
+        if config.has_option("decode", "tail_cutoff"):
+            self.tail_cutoff = float(config.get("decode", "tail_cutoff"))
         self.log_tail_cutoff = math.log(self.tail_cutoff)
-    
 
     def uactsToTuples(self, uacts):
         out = []
         for uact in uacts:
-            act =uact["act"]
-            if uact["slots"] == [] :
+            act = uact["act"]
+            if uact["slots"] == []:
                 out.append((act,))
-            for slot,value in uact["slots"]:
-                if act == "request" :
+            for slot, value in uact["slots"]:
+                if act == "request":
                     out.append(("request", value))
                 elif slot in self.slots_informable or slot == "this":
                     if slot in self.slots_enumerated or slot == "this":
-                        out.append((act,slot,value))
-                    else :
-                        out.append((act,slot, genericValue(slot, value)))
+                        out.append((act, slot, value))
+                    else:
+                        out.append((act, slot, genericValue(slot, value)))
         return out
 
     def _getAllTuples(self):
@@ -96,24 +95,24 @@ class tuples(object):
         #         out.append((act, slot, "do nt care"))
         # for slot in self.slots_informable:
         #     out.append(("inform",slot,"do nt care"))
-        
+
         # for act in self.nonfull_acts:
         #     out.append((act,))
         return list(set(out))
-    
+
     def activeTuples(self, log_turn):
         asr_hyps = log_turn["input"]["live"]["asr-hyps"]
         out = []
         asr_hyps_conc = ", ".join([asr_hyp['asr-hyp'].lower() for asr_hyp in asr_hyps])
         for this_tuple in self.all_tuples:
-            if is_generic(this_tuple[-1]) :
+            if is_generic(this_tuple[-1]):
                 # this is a generic value
                 act, slot, gvalue = this_tuple
                 for value in self.ontology["informable"][this_tuple[-2]]:
-                    if value.lower() in asr_hyps_conc :
+                    if value.lower() in asr_hyps_conc:
                         out.append((act, slot, genericValue(slot, value)))
                 if slot == 'Phone':
-                    matchObj = re.search(r'\d{11}',asr_hyps_conc)
+                    matchObj = re.search(r'\d{11}', asr_hyps_conc)
                     if matchObj:
                         out.append((act, slot, genericValue(slot, matchObj.group())))
                 elif slot == 'Ticket':
@@ -128,7 +127,7 @@ class tuples(object):
                     matchObj = re.search(r'\d+?:\d\d', asr_hyps_conc)
                     if matchObj:
                         out.append((act, slot, genericValue(slot, matchObj.group(0))))
-            else :
+            else:
                 out.append(this_tuple)
         return out
 
@@ -137,14 +136,14 @@ class tuples(object):
         out = []
         asr_hyps_conc = ", ".join([asr_hyp['asr-hyp'].lower() for asr_hyp in asr_hyps])
         for this_tuple in self.all_tuples:
-            if is_generic(this_tuple[-1]) :
+            if is_generic(this_tuple[-1]):
                 # this is a generic value
                 act, slot, gvalue = this_tuple
                 for value in self.ontology["informable"][this_tuple[-2]]:
-                    if value.lower() in asr_hyps_conc :
+                    if value.lower() in asr_hyps_conc:
                         out.append((act, slot, genericValue(slot, value)))
                 if slot == 'Phone':
-                    matchObj = re.search(r'\d{11}',asr_hyps_conc)
+                    matchObj = re.search(r'\d{11}', asr_hyps_conc)
                     if matchObj:
                         out.append((act, slot, genericValue(slot, matchObj.group())))
                 elif slot == 'Ticket':
@@ -159,7 +158,7 @@ class tuples(object):
                     matchObj = re.search(r'\d+?:\d\d', asr_hyps_conc)
                     if matchObj:
                         out.append((act, slot, genericValue(slot, matchObj.group(0))))
-            else :
+            else:
                 out.append(this_tuple)
         return out
 
@@ -167,13 +166,14 @@ class tuples(object):
         # convert a tuple distribution to an nbest list
         tuple_distribution = tuple_distribution.items()
         output = []
-        ps = [p for _t,p in tuple_distribution]
+        ps = [p for _t, p in tuple_distribution]
         eps = 0.00001
-        tuple_distribution = [(t, math.log(max(eps,p)), math.log(max(eps, 1-p))) for t,p in tuple_distribution if p > 0]
-        tuple_distribution = sorted(tuple_distribution,key=lambda x:-x[1])
+        tuple_distribution = [(t, math.log(max(eps, p)), math.log(max(eps, 1 - p))) for t, p in tuple_distribution if
+                              p > 0]
+        tuple_distribution = sorted(tuple_distribution, key=lambda x: -x[1])
         # prune
         tuple_distribution = tuple_distribution[:self.max_active]
-       
+
         n = len(tuple_distribution)
         powerset = sutils.powerset(range(n))
         acts = []
@@ -181,42 +181,42 @@ class tuples(object):
             act = []
             score = 0
             for i in range(n):
-                this_tuple, logp, log1_p = tuple_distribution[i] 
-                if i in subset :
+                this_tuple, logp, log1_p = tuple_distribution[i]
+                if i in subset:
                     act.append(this_tuple)
                     score += logp
-                else :
+                else:
                     score += log1_p
-            if (score> self.log_tail_cutoff or len(act) == 0) and makes_valid_act(act) :
-                acts.append((act,score))
-                if len(act) ==0 :
+            if (score > self.log_tail_cutoff or len(act) == 0) and makes_valid_act(act):
+                acts.append((act, score))
+                if len(act) == 0:
                     null_score = score
-        acts = sorted(acts,key=lambda x:-x[1])
-        
+        acts = sorted(acts, key=lambda x: -x[1])
+
         acts = acts[:10]
         found_null = False
-        for act,score in acts:
+        for act, score in acts:
             if len(act) == 0:
                 found_null = True
                 break
-        if not found_null :
+        if not found_null:
             acts.append(([], null_score))
-        
-        #normalise
-        acts = [(act,math.exp(logp)) for act,logp in acts]
-        totalp = sum([p for act,p in acts])
-        acts = [{"slu-hyp":[tuple_to_act(a) for a in act],"score":p/totalp} for act,p in acts]
-        return acts
-        
-def tuple_to_act(t) :
-    if len(t) == 1 :
-        return {"act":t[0],"slots":[]}
-    if len(t) == 2 :
-        assert t[0] == "request"
-        return {"act":"request", "slots":[["slot",t[1]]]}
-    else :
-        return {"act":t[0],"slots":[[t[1],t[2]]]}
 
+        # normalise
+        acts = [(act, math.exp(logp)) for act, logp in acts]
+        totalp = sum([p for act, p in acts])
+        acts = [{"slu-hyp": [tuple_to_act(a) for a in act], "score": p / totalp} for act, p in acts]
+        return acts
+
+
+def tuple_to_act(t):
+    if len(t) == 1:
+        return {"act": t[0], "slots": []}
+    if len(t) == 2:
+        assert t[0] == "request"
+        return {"act": "request", "slots": [["slot", t[1]]]}
+    else:
+        return {"act": t[0], "slots": [[t[1], t[2]]]}
 
 
 def makes_valid_act(tuples):
@@ -224,19 +224,20 @@ def makes_valid_act(tuples):
     # - can't affirm and negate
     # - can't deny and inform same thing
     # - can't inform(a=x) inform(a=y) if x!=u
-    singles = [t for t in tuples if len(t)==1]
-    if ("affirm",) in tuples and ("negate",) in tuples :
+    singles = [t for t in tuples if len(t) == 1]
+    if ("affirm",) in tuples and ("negate",) in tuples:
         return False
-    triples = [t for t in tuples if len(t)==3]
-    informed = [(slot, value) for act,slot,value in triples if act=="inform"]
-    denied   = [(slot, value) for act,slot,value in triples if act=="deny"  ]
-    for s,v in informed:
-        if (s,v) in denied:
+    triples = [t for t in tuples if len(t) == 3]
+    informed = [(slot, value) for act, slot, value in triples if act == "inform"]
+    denied = [(slot, value) for act, slot, value in triples if act == "deny"]
+    for s, v in informed:
+        if (s, v) in denied:
             return False
     informed_slots = [slot for slot, _value in informed]
-    if len(informed_slots) != len(set(informed_slots)) :
+    if len(informed_slots) != len(set(informed_slots)):
         return False
     return True
+
 
 def actual_value(value):
     try:
@@ -244,7 +245,7 @@ def actual_value(value):
     except AttributeError:
         return value
 
-                  
+
 class genericValue(object):
     # useful class to use to represent a generic value
     # x = genericValue("food")
@@ -253,48 +254,49 @@ class genericValue(object):
     # x == y
     # y in [x]
     # y.value != z.value
-    
+
     def __init__(self, slot, value=None):
         self.slot = slot
         self.value = value
-        
+
     def __str__(self):
-        paren = "" 
-        if self.value is not None :
+        paren = ""
+        if self.value is not None:
             paren = " (%s)" % self.value
-        return ("(generic value for %s"% self.slot) + paren + ")"
-    
+        return ("(generic value for %s" % self.slot) + paren + ")"
+
     def __repr__(self):
         return self.__str__()
-    
+
     def __eq__(self, other):
         try:
             return self.slot == other.slot
-        except AttributeError :
+        except AttributeError:
             return False
-    
+
     def __hash__(self):
         return self.slot.__hash__()
-    
-    
+
+
 def is_generic(value):
     return not isinstance(value, str)
 
-def generic_to_specific(tup) :
-    if len(tup) == 3 :
-        act,slot,value = tup
+
+def generic_to_specific(tup):
+    if len(tup) == 3:
+        act, slot, value = tup
         value = actual_value(value)
-        return (act,slot,value)
+        return (act, slot, value)
     return tup
-    
+
+
 if __name__ == '__main__':
-    
     import configparser, json
-    
+
     config = configparser.ConfigParser()
     config.read("config/multiwoz.cfg")
     t = tuples(config)
-    dist = {('inform', 'food','indian'):0.9,('inform', 'food','indian2'):1.0, ('hello',):0.1}
+    dist = {('inform', 'food', 'indian'): 0.9, ('inform', 'food', 'indian2'): 1.0, ('hello',): 0.1}
     print(dist)
     nbest = t.distributionToNbest(dist)
     print(nbest)
@@ -303,5 +305,3 @@ if __name__ == '__main__':
     log_turn = log_file["turns"][2]
     print(log_turn["input"]["batch"]["asr-hyps"][0])
     print([tup for tup in t.activeTuples(log_turn) if tup[0] == "inform"])
-        
-

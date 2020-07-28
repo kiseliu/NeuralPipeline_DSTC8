@@ -29,6 +29,7 @@ def nan(v):
         return v == float('nan')
     return np.isnan(np.sum(v.data.cpu().numpy()))
 
+
 def get_sparse_input_aug(x_input_np):
     """
     sparse input of
@@ -52,11 +53,13 @@ def get_sparse_input_aug(x_input_np):
     result = torch.from_numpy(result_np).float()
     return result
 
+
 def init_gru(gru):
     gru.reset_parameters()
     for _, hh, _, _ in gru.all_weights:
         for i in range(0, hh.size(0), gru.hidden_size):
-            torch.nn.init.orthogonal(hh[i:i+gru.hidden_size],gain=1)
+            torch.nn.init.orthogonal(hh[i:i + gru.hidden_size], gain=1)
+
 
 class Attn(nn.Module):
     def __init__(self, hidden_size):
@@ -83,6 +86,7 @@ class Attn(nn.Module):
         energy = torch.bmm(v, energy)  # [B,1,T]
         return energy
 
+
 class SimpleDynamicEncoder(nn.Module):
     def __init__(self, input_size, embed_size, hidden_size, n_layers, dropout):
         super().__init__()
@@ -94,7 +98,7 @@ class SimpleDynamicEncoder(nn.Module):
         self.embedding = nn.Embedding(input_size, embed_size)
         self.gru = nn.GRU(embed_size, hidden_size, n_layers, dropout=self.dropout, bidirectional=True)
         init_gru(self.gru)
-            
+
     def forward(self, input_seqs, input_lens, hidden=None):
         """
         forward procedure. No need for inputs to be sorted
@@ -143,16 +147,16 @@ class BSpanDecoder(nn.Module):
         else:
             context = self.attn_u(last_hidden, u_enc_out)
         embed_z = self.emb(z_tm1)
-        #embed_z = F.dropout(embed_z, self.dropout_rate)
-        #embed_z = self.inp_dropout(embed_z)
+        # embed_z = F.dropout(embed_z, self.dropout_rate)
+        # embed_z = self.inp_dropout(embed_z)
 
         gru_in = torch.cat([embed_z, context], 2)
         gru_out, last_hidden = self.gru(gru_in, last_hidden)
-        #gru_out = F.dropout(gru_out, self.dropout_rate)
-        #gru_out = self.inp_dropout(gru_out)
+        # gru_out = F.dropout(gru_out, self.dropout_rate)
+        # gru_out = self.inp_dropout(gru_out)
         gen_score = self.proj(torch.cat([gru_out, context], 2)).squeeze(0)
-        #gen_score = F.dropout(gen_score, self.dropout_rate)
-        #gen_score = self.inp_dropout(gen_score)
+        # gen_score = F.dropout(gen_score, self.dropout_rate)
+        # gen_score = self.inp_dropout(gen_score)
         u_copy_score = F.tanh(self.proj_copy1(u_enc_out.transpose(0, 1)))  # [B,T,H]
         # stable version of copynet
         u_copy_score = torch.matmul(u_copy_score, gru_out.squeeze(0).unsqueeze(2)).squeeze(2)
@@ -163,8 +167,8 @@ class BSpanDecoder(nn.Module):
             1) + u_copy_score_max  # [B,V]
         u_copy_score = cuda_(u_copy_score)
         if pv_z_enc_out is None:
-            #u_copy_score = F.dropout(u_copy_score, self.dropout_rate)
-            #u_copy_score = self.inp_dropout(u_copy_score)
+            # u_copy_score = F.dropout(u_copy_score, self.dropout_rate)
+            # u_copy_score = self.inp_dropout(u_copy_score)
             scores = F.softmax(torch.cat([gen_score, u_copy_score], dim=1), dim=1)
             gen_score, u_copy_score = scores[:, :cfg.vocab_size], \
                                       scores[:, cfg.vocab_size:]
@@ -206,7 +210,8 @@ class ResponseDecoder(nn.Module):
         self.vocab = vocab
 
     def get_sparse_selective_input(self, x_input_np):
-        result = np.zeros((x_input_np.shape[0], x_input_np.shape[1], cfg.vocab_size + x_input_np.shape[0]), dtype=np.float32)
+        result = np.zeros((x_input_np.shape[0], x_input_np.shape[1], cfg.vocab_size + x_input_np.shape[0]),
+                          dtype=np.float32)
         result.fill(1e-10)
         reqs = ['address', 'phone', 'postcode', 'pricerange', 'area']
         for t in range(x_input_np.shape[0] - 1):
@@ -218,9 +223,9 @@ class ResponseDecoder(nn.Module):
                     result[t + 1][b][slot] = 1.0
                 else:
                     if w == 2 or w >= cfg.vocab_size:
-                        result[t+1][b][cfg.vocab_size + t] = 5.0
+                        result[t + 1][b][cfg.vocab_size + t] = 5.0
                     else:
-                        result[t+1][b][w] = 1.0
+                        result[t + 1][b][w] = 1.0
         result_np = result.transpose((1, 0, 2))
         result = torch.from_numpy(result_np).float()
         return result
@@ -263,7 +268,7 @@ class TSD(nn.Module):
         self.u_encoder = SimpleDynamicEncoder(vocab_size, embed_size, hidden_size, layer_num, dropout_rate)
         self.z_decoder = BSpanDecoder(embed_size, hidden_size, vocab_size, dropout_rate)
         self.m_decoder = ResponseDecoder(embed_size, hidden_size, vocab_size, degree_size, dropout_rate,
-                                               self.dec_gru, self.proj, self.emb, self.vocab)
+                                         self.dec_gru, self.proj, self.emb, self.vocab)
         self.embed_size = embed_size
 
         self.z_length = z_length
@@ -351,11 +356,11 @@ class TSD(nn.Module):
                 z_np = z_tm1.view(-1).cpu().data.numpy()
                 for i in range(batch_size):
                     if z_np[i] == self.vocab.encode('EOS_Z2'):
-                        hiddens[i] = last_hidden[:,i,:]
+                        hiddens[i] = last_hidden[:, i, :]
                 z_tm1 = z_input[t].view(1, -1)
             for i in range(batch_size):
                 if hiddens[i] is None:
-                    hiddens[i] = last_hidden[:,i,:]
+                    hiddens[i] = last_hidden[:, i, :]
             last_hidden = torch.stack(hiddens, dim=1)
 
             z_input_np = z_input.cpu().data.numpy()
@@ -365,7 +370,7 @@ class TSD(nn.Module):
             # P(m|z,u)
             pm_dec_proba, m_dec_outs = [], []
             m_length = m_input.size(0)  # Tm
-            #last_hidden = u_enc_hidden[:-1]
+            # last_hidden = u_enc_hidden[:-1]
             for t in range(m_length):
                 teacher_forcing = toss_(self.teacher_force)
                 proba, last_hidden, dec_out = self.m_decoder(pz_dec_outs, u_enc_out, u_input_np, m_tm1,
@@ -381,9 +386,10 @@ class TSD(nn.Module):
             pm_dec_proba = torch.stack(pm_dec_proba, dim=0)  # [T,B,V]
             return pz_proba, pm_dec_proba, None
         else:
-            pz_dec_outs, bspan_index,last_hidden = self.bspan_decoder(u_enc_out, z_tm1, last_hidden, u_input_np,
-                                                          pv_z_enc_out=pv_z_enc_out, prev_z_input_np=prev_z_input_np,
-                                                          u_emb=u_emb, pv_z_emb=pv_z_emb)
+            pz_dec_outs, bspan_index, last_hidden = self.bspan_decoder(u_enc_out, z_tm1, last_hidden, u_input_np,
+                                                                       pv_z_enc_out=pv_z_enc_out,
+                                                                       prev_z_input_np=prev_z_input_np,
+                                                                       u_emb=u_emb, pv_z_emb=pv_z_emb)
             pz_dec_outs = torch.cat(pz_dec_outs, dim=0)
 
             if mode == 'test':
@@ -391,7 +397,7 @@ class TSD(nn.Module):
                     degree, degree_input = kwargs.get('func')(bspan_index[0])
                 else:
                     degree = None
-                
+
                 if not self.beam_search:
                     m_output_index = self.greedy_decode(pz_dec_outs, u_enc_out, m_tm1, u_input_np, last_hidden,
                                                         degree_input, bspan_index)
@@ -518,7 +524,8 @@ class TSD(nn.Module):
                 mt_proba, mt_index = torch.topk(proba, self.beam_size - dead_k)  # [1,K]
                 for new_k in range(self.beam_size - dead_k):
                     score_incre = soft_score_incre(mt_proba[0][new_k].data[0], t) + score_bonus(state,
-                                                                                                mt_index[0][new_k].data[0],bspan_index)
+                                                                                                mt_index[0][new_k].data[
+                                                                                                    0], bspan_index)
                     if len(new_states) >= self.beam_size - dead_k and state.score + score_incre < new_states[-1].score:
                         break
                     decoded_t = mt_index[0][new_k]
@@ -602,7 +609,7 @@ class TSD(nn.Module):
         finished = m_tm1 == 'EOS_M'
         decoded = [_.view(-1)[0] for _ in decoded]
         decoded_sentence = self.vocab.sentence_decode(decoded, cfg.eos_m_token).split()
-        reward = 0.0 # -0.1
+        reward = 0.0  # -0.1
         '''
         if not finished:
             if m_tm1 in req_slots:
@@ -614,7 +621,7 @@ class TSD(nn.Module):
             if decoded_sentence and m_tm1 not in decoded_sentence[:-1]:
                 reward += 1.5
             else:
-                reward -= 1.0 # repeat
+                reward -= 1.0  # repeat
         elif m_tm1 in all_reqs:
             if decoded_sentence and m_tm1 not in decoded_sentence[:-1]:
                 reward += 0.5
@@ -631,7 +638,8 @@ class TSD(nn.Module):
             if not self.get_req_slots(bspan_index[i]):
                 continue
             for j in range(sample_num):
-                loss = self.sampling_decode_single(pz_dec_out_s, u_enc_out_s, m_tm1_s, u_input_np[:, i].reshape((-1, 1)),
+                loss = self.sampling_decode_single(pz_dec_out_s, u_enc_out_s, m_tm1_s,
+                                                   u_input_np[:, i].reshape((-1, 1)),
                                                    last_hidden_s, degree_input_s, bspan_index[i])
                 batch_loss.append(loss)
         if not batch_loss:

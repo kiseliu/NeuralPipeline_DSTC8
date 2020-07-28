@@ -40,6 +40,7 @@ env = make_env(spec)
 body = Body(env, spec['agent'])
 agent = DialogAgent(spec, body)
 
+
 # last_obs = 'hi'
 # agent.reset(last_obs)
 

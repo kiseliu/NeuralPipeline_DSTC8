@@ -15,7 +15,7 @@ from dialog_utils import task_generate
 domain_name = 'object_division'
 domain_info = domain.get_domain(domain_name)
 config = Pack(
-    random_seed = 10,
+    random_seed=10,
     train_path='../data/norm-multi-woz/train_dials.json',
     valid_path='../data/norm-multi-woz/val_dials.json',
     test_path='../data/norm-multi-woz/test_dials.json',
@@ -47,7 +47,7 @@ config = Pack(
     dec_attn_mode='cat',
     #
     beam_size=20,
-    fix_batch = True,
+    fix_batch=True,
     fix_train_batch=False,
     avg_type='word',
     print_step=500,
@@ -72,7 +72,7 @@ if config.forward_only:
     config = Pack(json.load(open(os.path.join(saved_path, 'config.json'))))
     config['forward_only'] = True
 else:
-    saved_path = os.path.join(stats_path, start_time+'-'+os.path.basename(__file__).split('.')[0])
+    saved_path = os.path.join(stats_path, start_time + '-' + os.path.basename(__file__).split('.')[0])
     if not os.path.exists(saved_path):
         os.makedirs(saved_path)
 config.saved_path = saved_path

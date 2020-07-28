@@ -14,12 +14,14 @@ from ignite.handlers import ModelCheckpoint
 from ignite.metrics import Accuracy, Loss, MetricsLambda, RunningAverage
 from ignite.contrib.handlers import ProgressBar, PiecewiseLinear
 from ignite.contrib.handlers.tensorboard_logger import TensorboardLogger, OutputHandler, OptimizerParamsHandler
+
 filepath = os.path.realpath(__file__)
 dirpath = os.path.dirname(filepath)
 for _ in range(5):
     dirpath = os.path.dirname(dirpath)
 convlab_path = dirpath
 import sys
+
 sys.path.append(convlab_path)
 from convlab.modules.e2e.multiwoz.Transformer.pytorch_transformers import GPT2DoubleHeadsModel, GPT2Tokenizer, AdamW
 from convlab.modules.e2e.multiwoz.Transformer.util import get_woz_dataset
@@ -49,57 +51,64 @@ for d in domains:
             if d in ['restaurant', 'hotel', 'hospital', 'police', 'attraction']:
                 SPECIAL_TOKENS_V1.append('[' + d + '_' + r + ']')
 
-
-
 SPECIAL_TOKENS_V4 = ["<bos>", "<eos>", "<user>", "<system>", "<cs>", "<dp>", "<pad>", "<dc>", "<nm>"]
 domains = ['restaurant', 'hotel', 'attraction', 'train', 'taxi', 'hospital', 'police']
-requestables = ['phone','reference', 'id', 'postcode', 'addr', 'name']
+requestables = ['phone', 'reference', 'id', 'postcode', 'addr', 'name']
 
-slot_name = ['<leave>', '<people>', '<arrive>', '<pricerange>', '<arriveby>', '<ticket>', '<dest>', '<none>', '<leaveat>',
-             '<car>', '<ref>', '<department>', '<open>', '<parking>', '<departure>', '<day>', '<type>', '<time>', '<stay>',
-             '<internet>', '<phone>', '<choice>', '<destination>', '<name>', '<addr>', '<fee>', '<area>', '<post>', '<price>',
+slot_name = ['<leave>', '<people>', '<arrive>', '<pricerange>', '<arriveby>', '<ticket>', '<dest>', '<none>',
+             '<leaveat>',
+             '<car>', '<ref>', '<department>', '<open>', '<parking>', '<departure>', '<day>', '<type>', '<time>',
+             '<stay>',
+             '<internet>', '<phone>', '<choice>', '<destination>', '<name>', '<addr>', '<fee>', '<area>', '<post>',
+             '<price>',
              '<depart>', '<id>', '<food>', '<stars>']
 
-act_name = ['<restaurant-inform>', '<restaurant-recommend>', '<attraction-request>', '<hotel-request>', '<general-welcome>', '<train-offerbook>',
-            '<booking-request>', '<restaurant-nooffer>', '<hospital-inform>', '<train-request>', '<train-nooffer>', '<general-bye>',
-            '<hotel-select>', '<taxi-inform>', '<attraction-select>', '<attraction-nooffer>', '<booking-inform>', '<train-offerbooked>',
-            '<general-greet>', '<train-inform>', '<train-select>', '<booking-nobook>', '<police-inform>', '<taxi-request>', '<attraction-inform>',
-            '<restaurant-select>', '<hotel-recommend>', '<booking-book>', '<hospital-request>', '<general-reqmore>', '<restaurant-request>',
+act_name = ['<restaurant-inform>', '<restaurant-recommend>', '<attraction-request>', '<hotel-request>',
+            '<general-welcome>', '<train-offerbook>',
+            '<booking-request>', '<restaurant-nooffer>', '<hospital-inform>', '<train-request>', '<train-nooffer>',
+            '<general-bye>',
+            '<hotel-select>', '<taxi-inform>', '<attraction-select>', '<attraction-nooffer>', '<booking-inform>',
+            '<train-offerbooked>',
+            '<general-greet>', '<train-inform>', '<train-select>', '<booking-nobook>', '<police-inform>',
+            '<taxi-request>', '<attraction-inform>',
+            '<restaurant-select>', '<hotel-recommend>', '<booking-book>', '<hospital-request>', '<general-reqmore>',
+            '<restaurant-request>',
             '<hotel-nooffer>', '<hotel-inform>', '<attraction-recommend>']
 
 dom_name = ['<hotel>', '<police>', '<restaurant>', '<train>', '<hospital>', '<taxi>', '<attraction>']
 
 SPECIAL_TOKENS_V4 += slot_name
 SPECIAL_TOKENS_V4 += act_name
-SPECIAL_TOKENS_V4+= dom_name
+SPECIAL_TOKENS_V4 += dom_name
 
 for d in domains:
     for r in requestables:
 
         if r == 'phone':
-            if d in ['restaurant', 'hotel', 'attraction','taxi', 'hospital', 'police']:
-                SPECIAL_TOKENS_V4.append('['+d+'_'+r+']')
+            if d in ['restaurant', 'hotel', 'attraction', 'taxi', 'hospital', 'police']:
+                SPECIAL_TOKENS_V4.append('[' + d + '_' + r + ']')
         elif r == 'reference':
             if d in ['restaurant', 'hotel', 'train']:
-                SPECIAL_TOKENS_V4.append('['+d+'_'+r+']')
+                SPECIAL_TOKENS_V4.append('[' + d + '_' + r + ']')
         elif r == 'id':
             if d == 'train':
-                SPECIAL_TOKENS_V4.append('['+d+'_'+r+']')
+                SPECIAL_TOKENS_V4.append('[' + d + '_' + r + ']')
         elif r == 'postcode':
             if d in ['restaurant', 'hotel', 'hospital', 'police', 'attraction']:
-                SPECIAL_TOKENS_V4.append('['+d+'_'+r+']')
+                SPECIAL_TOKENS_V4.append('[' + d + '_' + r + ']')
         elif r == 'addr':
             if d in ['restaurant', 'hotel', 'attraction', 'police', 'hospital']:
-                SPECIAL_TOKENS_V4.append('['+d+'_'+r+']')
+                SPECIAL_TOKENS_V4.append('[' + d + '_' + r + ']')
         else:
             if d in ['restaurant', 'hotel', 'hospital', 'police', 'attraction']:
-                SPECIAL_TOKENS_V4.append('['+d+'_'+r+']')
+                SPECIAL_TOKENS_V4.append('[' + d + '_' + r + ']')
 
 MODEL_INPUTS = ["input_ids", "mc_token_ids", "lm_labels", "mc_labels", "token_type_ids"]
 PADDED_INPUTS = ["input_ids", "lm_labels", "token_type_ids"]
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
+
 
 def average_distributed_scalar(scalar, args):
     """ Average a scalar over the nodes if we are in distributed training. We use this for distributed evaluation. """
@@ -118,7 +127,8 @@ def pad_dataset(dataset, padding=0):
     return dataset
 
 
-def build_input_from_segments_v1(history, reply, tokenizer, dp=[], cs=[], lm_labels=False, with_eos=True, model="gpt2", mode='train'):
+def build_input_from_segments_v1(history, reply, tokenizer, dp=[], cs=[], lm_labels=False, with_eos=True, model="gpt2",
+                                 mode='train'):
     """ Build a sequence of input from 3 segments: persona, history and last reply """
     bos, eos, user, system, cstok, dptok, pcstok = tokenizer.convert_tokens_to_ids(SPECIAL_TOKENS_V1[:7])
 
@@ -127,7 +137,8 @@ def build_input_from_segments_v1(history, reply, tokenizer, dp=[], cs=[], lm_lab
         sequence = [[bos]] + history + [[cstok] + cs + [dptok] + dp + [system] + reply + ([eos] if with_eos else [])]
     else:
         sequence = [[bos]] + history + [[cstok] + cs + dp + reply + ([eos] if with_eos else [])]
-    sequence = [sequence[0]] + [[user if (len(sequence)-i) % 2 else system] + s for i, s in enumerate(sequence[1:-1])] + sequence[-1:]
+    sequence = [sequence[0]] + [[user if (len(sequence) - i) % 2 else system] + s for i, s in
+                                enumerate(sequence[1:-1])] + sequence[-1:]
 
     l = len([i for s in sequence for i in s])
 
@@ -150,15 +161,19 @@ def build_input_from_segments_v1(history, reply, tokenizer, dp=[], cs=[], lm_lab
         instance["lm_labels"] = ([-1] * sum(len(s) for s in sequence[:-1])) + [-1] + sequence[-1][1:]
     return instance, sequence
 
-def build_input_from_segments_v2(history, reply, tokenizer, dp=[], cs=[], db=[], lm_labels=False, with_eos=True, model="gpt2", mode='train'):
+
+def build_input_from_segments_v2(history, reply, tokenizer, dp=[], cs=[], db=[], lm_labels=False, with_eos=True,
+                                 model="gpt2", mode='train'):
     """ Build a sequence of input from 3 segments: persona, history and last reply """
     bos, eos, user, system, cstok, dptok, dbtok = tokenizer.convert_tokens_to_ids(SPECIAL_TOKENS_V1[:7])
     instance = {}
     if mode == 'train':
-        sequence = [[bos]] + history + [[cstok] + cs + [dbtok] + db + [dptok] + dp + [system] + reply + ([eos] if with_eos else [])]
+        sequence = [[bos]] + history + [
+            [cstok] + cs + [dbtok] + db + [dptok] + dp + [system] + reply + ([eos] if with_eos else [])]
     else:
-        sequence = [[bos]] + history + [[cstok] + cs + db  + dp + reply + ([eos] if with_eos else [])]
-    sequence = [sequence[0]] + [[user if (len(sequence)-i) % 2 else system] + s for i, s in enumerate(sequence[1:-1])] + sequence[-1:]
+        sequence = [[bos]] + history + [[cstok] + cs + db + dp + reply + ([eos] if with_eos else [])]
+    sequence = [sequence[0]] + [[user if (len(sequence) - i) % 2 else system] + s for i, s in
+                                enumerate(sequence[1:-1])] + sequence[-1:]
 
     l = len([i for s in sequence for i in s])
 
@@ -174,18 +189,21 @@ def build_input_from_segments_v2(history, reply, tokenizer, dp=[], cs=[], db=[],
 
     instance["input_ids"] = list(chain(*sequence))
     if mode == 'train':
-        instance["token_type_ids"] = [user if i % 2 else system for i, s in enumerate(sequence[:-1]) for _ in s] + [cstok] * (len(cs) + 1) + [dbtok] * (len(db) + 1) + [dptok] * (len(dp) + 1) + [system] * (len(reply) + 2)
+        instance["token_type_ids"] = [user if i % 2 else system for i, s in enumerate(sequence[:-1]) for _ in s] + [
+            cstok] * (len(cs) + 1) + [dbtok] * (len(db) + 1) + [dptok] * (len(dp) + 1) + [system] * (len(reply) + 2)
     else:
-        instance["token_type_ids"] = [user if i % 2 else system for i, s in enumerate(sequence[:-1]) for _ in s] + [cstok] * (len(cs) + 1) + [dbtok] * (len(db)) + [dptok] * (len(dp)) + [system] * (len(reply))
+        instance["token_type_ids"] = [user if i % 2 else system for i, s in enumerate(sequence[:-1]) for _ in s] + [
+            cstok] * (len(cs) + 1) + [dbtok] * (len(db)) + [dptok] * (len(dp)) + [system] * (len(reply))
     instance["mc_token_ids"] = len(instance["input_ids"]) - 1
     instance["lm_labels"] = [-1] * len(instance["input_ids"])
     if lm_labels:
         instance["lm_labels"] = ([-1] * sum(len(s) for s in sequence[:-1])) + [-1] + sequence[-1][1:]
     return instance, sequence
 
+
 def get_data_loaders(args, tokenizer):
     """ Prepare the dataset for training and evaluation """
-    #multiwoz_train, multiwoz_valid = get_woz_dataset(tokenizer, args.dataset_path, args.dataset_cache)
+    # multiwoz_train, multiwoz_valid = get_woz_dataset(tokenizer, args.dataset_path, args.dataset_cache)
     multiwozchat = get_woz_dataset(tokenizer, args.dataset_path, args.dataset_cache)
 
     logger.info("Build inputs and labels")
@@ -201,13 +219,15 @@ def get_data_loaders(args, tokenizer):
                 cs = utterance["cs"]
                 cs = cs[0] if cs else cs
                 db = utterance["db"][0] if 'v2' in args.model_version else None
-                history = utterance["history"][-(2*args.max_history+1):]
+                history = utterance["history"][-(2 * args.max_history + 1):]
                 for j, candidate in enumerate(utterance["candidates"][-num_candidates:]):
-                    lm_labels = bool(j == num_candidates-1)
-                    if  args.model_version in ['v1', 'v4']:
-                        instance, _ = build_input_from_segments_v1(history, candidate, tokenizer, dp, cs, lm_labels, model=args.model_checkpoint)
+                    lm_labels = bool(j == num_candidates - 1)
+                    if args.model_version in ['v1', 'v4']:
+                        instance, _ = build_input_from_segments_v1(history, candidate, tokenizer, dp, cs, lm_labels,
+                                                                   model=args.model_checkpoint)
                     else:
-                        instance, _ = build_input_from_segments_v2(history, candidate, tokenizer, dp, cs, db, lm_labels, model=args.model_checkpoint)
+                        instance, _ = build_input_from_segments_v2(history, candidate, tokenizer, dp, cs, db, lm_labels,
+                                                                   model=args.model_checkpoint)
                     for input_name, input_array in instance.items():
                         datasets[dataset_name][input_name].append(input_array)
                 datasets[dataset_name]["mc_labels"].append(num_candidates - 1)
@@ -227,7 +247,8 @@ def get_data_loaders(args, tokenizer):
     train_dataset, valid_dataset = TensorDataset(*tensor_datasets["train"]), TensorDataset(*tensor_datasets["valid"])
     train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset) if args.distributed else None
     valid_sampler = torch.utils.data.distributed.DistributedSampler(valid_dataset) if args.distributed else None
-    train_loader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size, shuffle=(not args.distributed))
+    train_loader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size,
+                              shuffle=(not args.distributed))
     valid_loader = DataLoader(valid_dataset, sampler=valid_sampler, batch_size=args.valid_batch_size, shuffle=False)
 
     logger.info("Train dataset (Batch, Candidates, Seq length): {}".format(train_dataset.tensors[0].shape))
@@ -237,7 +258,8 @@ def get_data_loaders(args, tokenizer):
 
 def train():
     parser = ArgumentParser()
-    parser.add_argument("--dataset_path", type=str, default="data/multiwoz/", help="Path or url of the dataset. If empty download from S3.")
+    parser.add_argument("--dataset_path", type=str, default="data/multiwoz/",
+                        help="Path or url of the dataset. If empty download from S3.")
     parser.add_argument("--dataset_cache", type=str, default='./dataset_cache', help="Path or url of the dataset cache")
     parser.add_argument("--model_checkpoint", type=str, default="gpt2", help="Path, url or short name of the model")
     parser.add_argument("--model_version", type=str, default='v4', help="version of model")
@@ -245,22 +267,27 @@ def train():
     parser.add_argument("--max_history", type=int, default=30, help="Number of previous exchanges to keep in history")
     parser.add_argument("--train_batch_size", type=int, default=1, help="Batch size for training")
     parser.add_argument("--valid_batch_size", type=int, default=1, help="Batch size for validation")
-    parser.add_argument("--gradient_accumulation_steps", type=int, default=8, help="Accumulate gradients on several steps")
+    parser.add_argument("--gradient_accumulation_steps", type=int, default=8,
+                        help="Accumulate gradients on several steps")
     parser.add_argument("--lr", type=float, default=6.25e-5, help="Learning rate")
     parser.add_argument("--lm_coef", type=float, default=1.0, help="LM loss coefficient")
     parser.add_argument("--mc_coef", type=float, default=1.0, help="Multiple-choice loss coefficient")
     parser.add_argument("--max_norm", type=float, default=1.0, help="Clipping gradient norm")
     parser.add_argument("--n_epochs", type=int, default=5, help="Number of training epochs")
-    parser.add_argument("--eval_before_start", action='store_true', help="If true start with a first evaluation before training")
-    parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu", help="Device (cuda or cpu)")
-    parser.add_argument("--fp16", type=str, default="", help="Set to O0, O1, O2 or O3 for fp16 training (see apex documentation)")
-    parser.add_argument("--local_rank", type=int, default=-1, help="Local rank for distributed training (-1: not distributed)")
+    parser.add_argument("--eval_before_start", action='store_true',
+                        help="If true start with a first evaluation before training")
+    parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu",
+                        help="Device (cuda or cpu)")
+    parser.add_argument("--fp16", type=str, default="",
+                        help="Set to O0, O1, O2 or O3 for fp16 training (see apex documentation)")
+    parser.add_argument("--local_rank", type=int, default=-1,
+                        help="Local rank for distributed training (-1: not distributed)")
     args = parser.parse_args()
-
 
     # logging is set to INFO (resp. WARN) for main (resp. auxiliary) process. logger.info => log main process only, logger.warning => log all processes
     logging.basicConfig(level=logging.INFO if args.local_rank in [-1, 0] else logging.WARN)
-    logger.warning("Running process %d", args.local_rank)  # This is a logger.warning: it will be printed by all distributed processes
+    logger.warning("Running process %d",
+                   args.local_rank)  # This is a logger.warning: it will be printed by all distributed processes
     logger.info("Arguments: %s", pformat(args))
 
     # Initialize distributed training if needed
@@ -338,6 +365,7 @@ def train():
             lm_logits_flat_shifted = lm_logits[..., :-1, :].contiguous().view(-1, lm_logits.size(-1))
             lm_labels_flat_shifted = lm_labels[..., 1:].contiguous().view(-1)
             return (lm_logits_flat_shifted, mc_logits), (lm_labels_flat_shifted, mc_labels)
+
     evaluator = Engine(inference)
     evaluator._logger.setLevel(logging.INFO)
 
@@ -371,16 +399,21 @@ def train():
     if args.local_rank in [-1, 0]:
         pbar = ProgressBar(persist=True)
         pbar.attach(trainer, metric_names=["loss"])
-        evaluator.add_event_handler(Events.COMPLETED, lambda _: pbar.log_message("Validation: %s" % pformat(evaluator.state.metrics)))
+        evaluator.add_event_handler(Events.COMPLETED,
+                                    lambda _: pbar.log_message("Validation: %s" % pformat(evaluator.state.metrics)))
 
         tb_logger = TensorboardLogger(log_dir=None)
         tb_logger.writer.log_dir = tb_logger.writer.file_writer.get_logdir()
-        tb_logger.attach(trainer, log_handler=OutputHandler(tag="training", metric_names=["loss"]), event_name=Events.ITERATION_COMPLETED)
+        tb_logger.attach(trainer, log_handler=OutputHandler(tag="training", metric_names=["loss"]),
+                         event_name=Events.ITERATION_COMPLETED)
         tb_logger.attach(trainer, log_handler=OptimizerParamsHandler(optimizer), event_name=Events.ITERATION_STARTED)
-        tb_logger.attach(evaluator, log_handler=OutputHandler(tag="validation", metric_names=list(metrics.keys()), another_engine=trainer), event_name=Events.EPOCH_COMPLETED)
+        tb_logger.attach(evaluator, log_handler=OutputHandler(tag="validation", metric_names=list(metrics.keys()),
+                                                              another_engine=trainer),
+                         event_name=Events.EPOCH_COMPLETED)
 
         checkpoint_handler = ModelCheckpoint(tb_logger.writer.log_dir, 'checkpoint', save_interval=1, n_saved=3)
-        trainer.add_event_handler(Events.EPOCH_COMPLETED, checkpoint_handler, {'mymodel': getattr(model, 'module', model)})  # "getattr" take care of distributed encapsulation
+        trainer.add_event_handler(Events.EPOCH_COMPLETED, checkpoint_handler, {
+            'mymodel': getattr(model, 'module', model)})  # "getattr" take care of distributed encapsulation
 
         torch.save(args, tb_logger.writer.log_dir + '/model_training_args.bin')
         getattr(model, 'module', model).config.to_json_file(os.path.join(tb_logger.writer.log_dir, CONFIG_NAME))
@@ -391,8 +424,10 @@ def train():
 
     # On the main process: close tensorboard logger and rename the last checkpoint (for easy re-loading with OpenAIGPTModel.from_pretrained method)
     if args.local_rank in [-1, 0] and args.n_epochs > 0:
-        os.rename(checkpoint_handler._saved[-1][1][-1], os.path.join(tb_logger.writer.log_dir, WEIGHTS_NAME))  # TODO: PR in ignite to have better access to saved file paths (cleaner)
+        os.rename(checkpoint_handler._saved[-1][1][-1], os.path.join(tb_logger.writer.log_dir,
+                                                                     WEIGHTS_NAME))  # TODO: PR in ignite to have better access to saved file paths (cleaner)
         tb_logger.close()
+
 
 if __name__ == "__main__":
     train()

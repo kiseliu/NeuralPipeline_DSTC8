@@ -39,13 +39,14 @@ for dom, ref_slots in REF_SYS_DA.items():
 # def book slot
 BOOK_SLOT = ['people', 'day', 'stay', 'time']
 
+
 class UserPolicyAgendaMultiWoz(UserPolicy):
     """ The rule-based user policy model by agenda. Derived from the UserPolicy class """
 
     # load stand value
     stand_value_dict = json.load(open(os.path.join(os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))),
-                'data/value_set.json')))
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))),
+        'data/value_set.json')))
 
     def __init__(self, max_goal_num=100, seed=2019):
         """
@@ -61,15 +62,15 @@ class UserPolicyAgendaMultiWoz(UserPolicy):
         self.agenda = None
 
         random.seed(seed)
-        self.goal_seeds = [random.randint(1,1e7) for i in range(max_goal_num)]
+        self.goal_seeds = [random.randint(1, 1e7) for i in range(max_goal_num)]
 
-        #UserPolicy.__init__(self, act_types, slots, slot_dict)
+        # UserPolicy.__init__(self, act_types, slots, slot_dict)
         UserPolicy.__init__(self)
 
     def init_session(self):
         """ Build new Goal and Agenda for next session """
         self.__turn = 0
-        if len(self.goal_seeds)>1:
+        if len(self.goal_seeds) > 1:
             self.goal = Goal(self.goal_generator, self.goal_seeds[0])
             self.goal_seeds = self.goal_seeds[1:]
         else:
@@ -144,7 +145,7 @@ class UserPolicyAgendaMultiWoz(UserPolicy):
                         slot = REF_USR_DA_M[dom.capitalize()].get(pairs[0], None)
                         if slot is not None:
                             new_action[new_act].append([slot, pairs[1]])
-                    #new_action[new_act] = [[REF_USR_DA_M[dom.capitalize()].get(pairs[0], pairs[0]), pairs[1]] for pairs in action[act]]
+                    # new_action[new_act] = [[REF_USR_DA_M[dom.capitalize()].get(pairs[0], pairs[0]), pairs[1]] for pairs in action[act]]
                 else:
                     new_action[act] = action[act]
             else:
@@ -168,14 +169,17 @@ class UserPolicyAgendaMultiWoz(UserPolicy):
                 if dom in REF_SYS_DA_M.keys():
                     new_list = []
                     for pairs in action[act]:
-                        if (not isinstance(pairs, list) and not isinstance(pairs, tuple)) or\
-                                (len(pairs) < 2) or\
-                                (not isinstance(pairs[0], str) or (not isinstance(pairs[1], str) and not isinstance(pairs[1], int))):
+                        if (not isinstance(pairs, list) and not isinstance(pairs, tuple)) or \
+                                (len(pairs) < 2) or \
+                                (not isinstance(pairs[0], str) or (
+                                        not isinstance(pairs[1], str) and not isinstance(pairs[1], int))):
                             logger.warning(f'illegal pairs: {pairs}')
                             continue
 
                         if REF_SYS_DA_M[dom].get(pairs[0].lower(), None) is not None:
-                            new_list.append([REF_SYS_DA_M[dom][pairs[0].lower()], cls._normalize_value(dom, intent, REF_SYS_DA_M[dom][pairs[0].lower()], pairs[1])])
+                            new_list.append([REF_SYS_DA_M[dom][pairs[0].lower()],
+                                             cls._normalize_value(dom, intent, REF_SYS_DA_M[dom][pairs[0].lower()],
+                                                                  pairs[1])])
 
                     if len(new_list) > 0:
                         new_action[act.lower()] = new_list
@@ -214,6 +218,7 @@ class UserPolicyAgendaMultiWoz(UserPolicy):
             logger.debug('Value not found in standard value set: [%s] (slot: %s domain: %s)' % (value, slot, domain))
         return value
 
+
 def transform_value(value):
     cand_list = []
     # a 's -> a's
@@ -223,6 +228,7 @@ def transform_value(value):
     if " - " in value:
         cand_list.append(value.replace(" - ", "-"))
     return cand_list
+
 
 def simple_fuzzy_match(value_list, value):
     # check contain relation
@@ -241,6 +247,7 @@ def simple_fuzzy_match(value_list, value):
             return v1
     return None
 
+
 def check_if_time(value):
     value = value.strip()
     match = re.search(r"(\d{1,2}:\d{1,2})", value)
@@ -250,6 +257,7 @@ def check_if_time(value):
     if len(groups) <= 0:
         return False
     return True
+
 
 def check_constraint(slot, val_usr, val_sys):
     try:
@@ -269,6 +277,7 @@ def check_constraint(slot, val_usr, val_sys):
         return False
     except:
         return False
+
 
 class Goal(object):
     """ User Goal Model Class. """
@@ -323,7 +332,8 @@ class Goal(object):
             if 'booked' in self.domain_goals[domain]:
                 if self.domain_goals[domain]['booked'] in NOT_SURE_VALS:
                     return domain, 'book', \
-                           self.domain_goals[domain]['fail_book'] if 'fail_book' in self.domain_goals[domain].keys() else self.domain_goals[domain]['book']
+                           self.domain_goals[domain]['fail_book'] if 'fail_book' in self.domain_goals[
+                               domain].keys() else self.domain_goals[domain]['book']
 
         return None, None, None
 
@@ -823,7 +833,8 @@ def test():
     user_simulator.init_session()
 
     test_turn(user_simulator, {'Train-NoOffer': [['Day', 'saturday'], ['Dest', 'place'], ['Depart', 'place']]})
-    test_turn(user_simulator, {'Hotel-NoOffer': [['stars', '3'], ['internet', 'yes'], ['type', 'guest house']], 'Hotel-Request': [['stars', '?']]})
+    test_turn(user_simulator, {'Hotel-NoOffer': [['stars', '3'], ['internet', 'yes'], ['type', 'guest house']],
+                               'Hotel-Request': [['stars', '?']]})
     test_turn(user_simulator, {"Hotel-Inform": [["Type", "qqq"], ["Parking", "no"], ["Internet", "yes"]]})
     test_turn(user_simulator, {"Hotel-Inform": [["Type", "qqq"], ["Parking", "no"]]})
     test_turn(user_simulator, {"Booking-Request": [["Day", "123"], ["Time", "no"]]})
@@ -832,6 +843,7 @@ def test():
     test_turn(user_simulator, {"Hotel-Nooffer": [["Stars", "3"]], "Hotel-Request": [["Parking", "?"]]})
     test_turn(user_simulator, {"Hotel-Select": [["Area", "aa"], ["Area", "bb"], ["Area", "cc"], ['Choice', 3]]})
     test_turn(user_simulator, {"Hotel-Offerbooked": [["Ref", "12345"]]})
+
 
 def test_turn(user_simulator, sys_action):
     print('input:', sys_action)

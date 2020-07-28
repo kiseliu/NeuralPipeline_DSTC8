@@ -4,8 +4,10 @@
 """
 """
 
+
 class NLG:
     """Base class for NLG model."""
+
     def __init__(self):
         """ Constructor for NLG class. """
         pass

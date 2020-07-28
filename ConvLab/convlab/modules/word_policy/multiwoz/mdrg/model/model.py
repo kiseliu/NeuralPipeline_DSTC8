@@ -57,7 +57,7 @@ def init_gru(gru, gain=1):
     gru.reset_parameters()
     for _, hh, _, _ in gru.all_weights:
         for i in range(0, hh.size(0), gru.hidden_size):
-            torch.nn.init.orthogonal_(hh[i:i+gru.hidden_size],gain=gain)
+            torch.nn.init.orthogonal_(hh[i:i + gru.hidden_size], gain=gain)
 
 
 def whatCellType(input_size, hidden_size, cell_type, dropout_rate):
@@ -84,7 +84,7 @@ def whatCellType(input_size, hidden_size, cell_type, dropout_rate):
 
 
 class EncoderRNN(nn.Module):
-    def __init__(self, input_size,  embedding_size, hidden_size, cell_type, depth, dropout):
+    def __init__(self, input_size, embedding_size, hidden_size, cell_type, depth, dropout):
         super(EncoderRNN, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
@@ -97,7 +97,7 @@ class EncoderRNN(nn.Module):
         padding_idx = 3
         self.embedding = nn.Embedding(input_size, embedding_size, padding_idx=padding_idx)
         self.rnn = whatCellType(embedding_size, hidden_size,
-                    cell_type, dropout_rate=self.dropout)
+                                cell_type, dropout_rate=self.dropout)
 
     def forward(self, input_seqs, input_lens, hidden=None):
         """
@@ -108,8 +108,8 @@ class EncoderRNN(nn.Module):
         :return:
         """
         input_lens = np.asarray(input_lens)
-        input_seqs = input_seqs.transpose(0,1)
-        #batch_size = input_seqs.size(1)
+        input_seqs = input_seqs.transpose(0, 1)
+        # batch_size = input_seqs.size(1)
         embedded = self.embedding(input_seqs)
         embedded = embedded.transpose(0, 1)  # [B,T,E]
         sort_idx = np.argsort(-input_lens)
@@ -157,17 +157,17 @@ class Attn(nn.Module):
         '''
         max_len = encoder_outputs.size(0)
 
-        H = hidden.repeat(max_len,1,1).transpose(0,1)
-        encoder_outputs = encoder_outputs.transpose(0,1)  # [T,B,H] -> [B,T,H]
-        attn_energies = self.score(H,encoder_outputs)  # compute attention score
+        H = hidden.repeat(max_len, 1, 1).transpose(0, 1)
+        encoder_outputs = encoder_outputs.transpose(0, 1)  # [T,B,H] -> [B,T,H]
+        attn_energies = self.score(H, encoder_outputs)  # compute attention score
         return F.softmax(attn_energies, dim=1).unsqueeze(1)  # normalize with softmax
 
     def score(self, hidden, encoder_outputs):
         cat = torch.cat([hidden, encoder_outputs], 2)
-        energy = torch.tanh(self.attn(cat)) # [B*T*2H]->[B*T*H]
-        energy = energy.transpose(2,1) # [B*H*T]
-        v = self.v.repeat(encoder_outputs.data.shape[0],1).unsqueeze(1) #[B*1*H]
-        energy = torch.bmm(v,energy)  # [B*1*T]
+        energy = torch.tanh(self.attn(cat))  # [B*T*2H]->[B*T*H]
+        energy = energy.transpose(2, 1)  # [B*H*T]
+        v = self.v.repeat(encoder_outputs.data.shape[0], 1).unsqueeze(1)  # [B*1*H]
+        energy = torch.bmm(v, energy)  # [B*1*T]
         return energy.squeeze(1)  # [B*T]
 
 
@@ -255,7 +255,7 @@ class DecoderRNN(nn.Module):
         embedded = F.dropout(embedded, self.dropout_rate)
 
         output = embedded
-        #output = F.relu(embedded)
+        # output = F.relu(embedded)
 
         output, hidden = self.rnn(output, hidden)
 
@@ -266,7 +266,8 @@ class DecoderRNN(nn.Module):
 
 
 class Model(nn.Module):
-    def __init__(self, args, input_lang_index2word, output_lang_index2word, input_lang_word2index, output_lang_word2index):
+    def __init__(self, args, input_lang_index2word, output_lang_index2word, input_lang_word2index,
+                 output_lang_word2index):
         super(Model, self).__init__()
         self.args = args
         self.max_len = args.max_len
@@ -302,7 +303,6 @@ class Model(nn.Module):
         self.vocab_size = args.vocab_size
         self.epsln = 10E-5
 
-
         torch.manual_seed(args.seed)
         self.build_model()
         self.getCount()
@@ -321,20 +321,24 @@ class Model(nn.Module):
         self.encoder = EncoderRNN(len(self.input_lang_index2word), self.emb_size, self.hid_size_enc,
                                   self.cell_type, self.depth, self.dropout).to(self.device)
 
-        self.policy = policy.DefaultPolicy(self.hid_size_pol, self.hid_size_enc, self.db_size, self.bs_size).to(self.device)
+        self.policy = policy.DefaultPolicy(self.hid_size_pol, self.hid_size_enc, self.db_size, self.bs_size).to(
+            self.device)
 
         if self.use_attn:
             if self.attn_type == 'bahdanau':
-                self.decoder = SeqAttnDecoderRNN(self.emb_size, self.hid_size_dec, len(self.output_lang_index2word), self.cell_type, self.dropout, self.max_len).to(self.device)
+                self.decoder = SeqAttnDecoderRNN(self.emb_size, self.hid_size_dec, len(self.output_lang_index2word),
+                                                 self.cell_type, self.dropout, self.max_len).to(self.device)
         else:
-            self.decoder = DecoderRNN(self.emb_size, self.hid_size_dec, len(self.output_lang_index2word), self.cell_type, self.dropout).to(self.device)
+            self.decoder = DecoderRNN(self.emb_size, self.hid_size_dec, len(self.output_lang_index2word),
+                                      self.cell_type, self.dropout).to(self.device)
 
         if self.args.mode == 'train':
             self.gen_criterion = nn.NLLLoss(ignore_index=3, size_average=True)  # logsoftmax is done in decoder part
             self.setOptimizers()
 
     def train(self, input_tensor, input_lengths, target_tensor, target_lengths, db_tensor, bs_tensor, dial_name=None):
-        proba, _, decoded_sent = self.forward(input_tensor, input_lengths, target_tensor, target_lengths, db_tensor, bs_tensor)
+        proba, _, decoded_sent = self.forward(input_tensor, input_lengths, target_tensor, target_lengths, db_tensor,
+                                              bs_tensor)
 
         proba = proba.view(-1, self.vocab_size)
         self.gen_loss = self.gen_criterion(proba, target_tensor.view(-1))
@@ -345,17 +349,23 @@ class Model(nn.Module):
         self.optimizer.step()
         self.optimizer.zero_grad()
 
-        #self.printGrad()
+        # self.printGrad()
         return self.loss.item(), 0, grad
 
     def setOptimizers(self):
         self.optimizer_policy = None
         if self.args.optim == 'sgd':
-            self.optimizer = optim.SGD(lr=self.args.lr_rate, params=filter(lambda x: x.requires_grad, self.parameters()), weight_decay=self.args.l2_norm)
+            self.optimizer = optim.SGD(lr=self.args.lr_rate,
+                                       params=filter(lambda x: x.requires_grad, self.parameters()),
+                                       weight_decay=self.args.l2_norm)
         elif self.args.optim == 'adadelta':
-            self.optimizer = optim.Adadelta(lr=self.args.lr_rate, params=filter(lambda x: x.requires_grad, self.parameters()), weight_decay=self.args.l2_norm)
+            self.optimizer = optim.Adadelta(lr=self.args.lr_rate,
+                                            params=filter(lambda x: x.requires_grad, self.parameters()),
+                                            weight_decay=self.args.l2_norm)
         elif self.args.optim == 'adam':
-            self.optimizer = optim.Adam(lr=self.args.lr_rate, params=filter(lambda x: x.requires_grad, self.parameters()), weight_decay=self.args.l2_norm)
+            self.optimizer = optim.Adam(lr=self.args.lr_rate,
+                                        params=filter(lambda x: x.requires_grad, self.parameters()),
+                                        weight_decay=self.args.l2_norm)
 
     def forward(self, input_tensor, input_lengths, target_tensor, target_lengths, db_tensor, bs_tensor):
         """Given the user sentence, user belief state and database pointer,
@@ -416,10 +426,11 @@ class Model(nn.Module):
             decoded_sentences = []
             for idx in range(target_tensor.size(0)):
                 if isinstance(decoder_hiddens, tuple):  # LSTM case
-                    decoder_hidden = (decoder_hiddens[0][:,idx, :].unsqueeze(0),decoder_hiddens[1][:,idx, :].unsqueeze(0))
+                    decoder_hidden = (
+                    decoder_hiddens[0][:, idx, :].unsqueeze(0), decoder_hiddens[1][:, idx, :].unsqueeze(0))
                 else:
                     decoder_hidden = decoder_hiddens[:, idx, :].unsqueeze(0)
-                encoder_output = encoder_outputs[:,idx, :].unsqueeze(1)
+                encoder_output = encoder_outputs[:, idx, :].unsqueeze(1)
 
                 # Beam start
                 self.topk = 1
@@ -492,7 +503,7 @@ class Model(nn.Module):
 
                 decoded_words = utterances[0]
                 decoded_sentence = [self.output_index2word(str(ind.item())) for ind in decoded_words]
-                #print(decoded_sentence)
+                # print(decoded_sentence)
                 decoded_sentences.append(' '.join(decoded_sentence[1:-1]))
 
             return decoded_sentences

@@ -234,7 +234,8 @@ class ActorCritic(Reinforce):
         v_preds = v_preds.detach()  # adv does not accumulate grad
         if self.body.env.is_venv:
             v_preds = math_util.venv_pack(v_preds, self.body.env.num_envs)
-        nstep_rets = math_util.calc_nstep_returns(batch['rewards'], batch['dones'], next_v_pred, self.gamma, self.num_step_returns)
+        nstep_rets = math_util.calc_nstep_returns(batch['rewards'], batch['dones'], next_v_pred, self.gamma,
+                                                  self.num_step_returns)
         advs = nstep_rets - v_preds
         v_targets = nstep_rets
         if self.body.env.is_venv:
@@ -295,11 +296,13 @@ class ActorCritic(Reinforce):
                 self.net.train_step(loss, self.optim, self.lr_scheduler, clock=clock, global_net=self.global_net)
             else:
                 self.net.train_step(policy_loss, self.optim, self.lr_scheduler, clock=clock, global_net=self.global_net)
-                self.critic_net.train_step(val_loss, self.critic_optim, self.critic_lr_scheduler, clock=clock, global_net=self.global_critic_net)
+                self.critic_net.train_step(val_loss, self.critic_optim, self.critic_lr_scheduler, clock=clock,
+                                           global_net=self.global_critic_net)
                 loss = policy_loss + val_loss
             # reset
             self.to_train = 0
-            logger.debug(f'Trained {self.name} at epi: {clock.epi}, frame: {clock.frame}, t: {clock.t}, total_reward so far: {self.body.total_reward}, loss: {loss:g}')
+            logger.debug(
+                f'Trained {self.name} at epi: {clock.epi}, frame: {clock.frame}, t: {clock.t}, total_reward so far: {self.body.total_reward}, loss: {loss:g}')
             return loss.item()
         else:
             return np.nan

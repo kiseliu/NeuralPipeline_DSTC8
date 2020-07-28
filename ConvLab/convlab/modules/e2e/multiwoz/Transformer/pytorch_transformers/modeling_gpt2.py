@@ -37,10 +37,12 @@ from .modeling_bert import BertLayerNorm as LayerNorm
 
 logger = logging.getLogger(__name__)
 
-GPT2_PRETRAINED_MODEL_ARCHIVE_MAP = {"gpt2": "https://s3.amazonaws.com/models.huggingface.co/bert/gpt2-pytorch_model.bin",
-                                     "gpt2-medium": "https://s3.amazonaws.com/models.huggingface.co/bert/gpt2-medium-pytorch_model.bin"}
+GPT2_PRETRAINED_MODEL_ARCHIVE_MAP = {
+    "gpt2": "https://s3.amazonaws.com/models.huggingface.co/bert/gpt2-pytorch_model.bin",
+    "gpt2-medium": "https://s3.amazonaws.com/models.huggingface.co/bert/gpt2-medium-pytorch_model.bin"}
 GPT2_PRETRAINED_CONFIG_ARCHIVE_MAP = {"gpt2": "https://s3.amazonaws.com/models.huggingface.co/bert/gpt2-config.json",
                                       "gpt2-medium": "https://s3.amazonaws.com/models.huggingface.co/bert/gpt2-medium-config.json"}
+
 
 def load_tf_weights_in_gpt2(model, config, gpt2_checkpoint_path):
     """ Load tf checkpoints in a pytorch model
@@ -51,7 +53,7 @@ def load_tf_weights_in_gpt2(model, config, gpt2_checkpoint_path):
         import tensorflow as tf
     except ImportError:
         logger.error("Loading a TensorFlow models in PyTorch, requires TensorFlow to be installed. Please see "
-            "https://www.tensorflow.org/install/ for installation instructions.")
+                     "https://www.tensorflow.org/install/ for installation instructions.")
         raise
     tf_path = os.path.abspath(gpt2_checkpoint_path)
     logger.info("Converting TensorFlow checkpoint from {}".format(tf_path))
@@ -123,26 +125,26 @@ class GPT2Config(PretrainedConfig):
     pretrained_config_archive_map = GPT2_PRETRAINED_CONFIG_ARCHIVE_MAP
 
     def __init__(
-        self,
-        vocab_size_or_config_json_file=50257,
-        n_positions=1024,
-        n_ctx=1024,
-        n_embd=768,
-        n_layer=12,
-        n_head=12,
-        resid_pdrop=0.1,
-        embd_pdrop=0.1,
-        attn_pdrop=0.1,
-        layer_norm_epsilon=1e-5,
-        initializer_range=0.02,
+            self,
+            vocab_size_or_config_json_file=50257,
+            n_positions=1024,
+            n_ctx=1024,
+            n_embd=768,
+            n_layer=12,
+            n_head=12,
+            resid_pdrop=0.1,
+            embd_pdrop=0.1,
+            attn_pdrop=0.1,
+            layer_norm_epsilon=1e-5,
+            initializer_range=0.02,
 
-        num_labels=1,
-        summary_type='token_ids',
-        summary_use_proj=True,
-        summary_activation=None,
-        summary_proj_to_labels=True,
-        summary_first_dropout=0.1,
-        **kwargs
+            num_labels=1,
+            summary_type='token_ids',
+            summary_use_proj=True,
+            summary_activation=None,
+            summary_proj_to_labels=True,
+            summary_first_dropout=0.1,
+            **kwargs
     ):
         """Constructs GPT2Config.
 
@@ -166,7 +168,7 @@ class GPT2Config(PretrainedConfig):
         super(GPT2Config, self).__init__(**kwargs)
 
         if isinstance(vocab_size_or_config_json_file, str) or (sys.version_info[0] == 2
-                        and isinstance(vocab_size_or_config_json_file, unicode)):
+                                                               and isinstance(vocab_size_or_config_json_file, unicode)):
             with open(vocab_size_or_config_json_file, "r", encoding="utf-8") as reader:
                 json_config = json.loads(reader.read())
             for key, value in json_config.items():
@@ -213,7 +215,6 @@ class GPT2Config(PretrainedConfig):
         return self.n_layer
 
 
-
 class Attention(nn.Module):
     def __init__(self, nx, n_ctx, config, scale=False):
         super(Attention, self).__init__()
@@ -240,7 +241,7 @@ class Attention(nn.Module):
             mask[head] = 0
         mask = mask.view(-1).contiguous().eq(1)
         index = torch.arange(len(mask))[mask].long()
-        index_attn = torch.cat([index, index + self.split_size, index + (2*self.split_size)])
+        index_attn = torch.cat([index, index + self.split_size, index + (2 * self.split_size)])
         # Prune conv1d layers
         self.c_attn = prune_conv1d_layer(self.c_attn, index_attn, dim=1)
         self.c_proj = prune_conv1d_layer(self.c_proj, index, dim=0)
@@ -253,7 +254,7 @@ class Attention(nn.Module):
         if self.scale:
             w = w / math.sqrt(v.size(-1))
         nd, ns = w.size(-2), w.size(-1)
-        b = self.bias[:, :, ns-nd:ns, :ns]
+        b = self.bias[:, :, ns - nd:ns, :ns]
         w = w * b - 1e4 * (1 - b)
 
         w = nn.Softmax(dim=-1)(w)
@@ -412,6 +413,7 @@ GPT2_INPUTS_DOCSTRING = r"""    Inputs:
             ``1`` indicates the head is **not masked**, ``0`` indicates the head is **masked**.
 """
 
+
 @add_start_docstrings("The bare GPT2 Model transformer outputing raw hidden-states without any specific head on top.",
                       GPT2_START_DOCSTRING, GPT2_INPUTS_DOCSTRING)
 class GPT2Model(GPT2PreTrainedModel):
@@ -441,6 +443,7 @@ class GPT2Model(GPT2PreTrainedModel):
         >>> last_hidden_states = outputs[0]  # The last hidden-state is the first element of the output tuple
 
     """
+
     def __init__(self, config):
         super(GPT2Model, self).__init__(config)
         self.output_hidden_states = config.output_hidden_states
@@ -472,7 +475,8 @@ class GPT2Model(GPT2PreTrainedModel):
         else:
             past_length = past[0][0].size(-2)
         if position_ids is None:
-            position_ids = torch.arange(past_length, input_ids.size(-1) + past_length, dtype=torch.long, device=input_ids.device)
+            position_ids = torch.arange(past_length, input_ids.size(-1) + past_length, dtype=torch.long,
+                                        device=input_ids.device)
             position_ids = position_ids.unsqueeze(0).expand_as(input_ids)
 
         # Prepare head mask if needed
@@ -484,8 +488,10 @@ class GPT2Model(GPT2PreTrainedModel):
                 head_mask = head_mask.unsqueeze(0).unsqueeze(0).unsqueeze(-1).unsqueeze(-1)
                 head_mask = head_mask.expand(self.config.n_layer, -1, -1, -1, -1)
             elif head_mask.dim() == 2:
-                head_mask = head_mask.unsqueeze(1).unsqueeze(-1).unsqueeze(-1)  # We can specify head_mask for each layer
-            head_mask = head_mask.to(dtype=next(self.parameters()).dtype) # switch to fload if need + fp16 compatibility
+                head_mask = head_mask.unsqueeze(1).unsqueeze(-1).unsqueeze(
+                    -1)  # We can specify head_mask for each layer
+            head_mask = head_mask.to(
+                dtype=next(self.parameters()).dtype)  # switch to fload if need + fp16 compatibility
         else:
             head_mask = [None] * self.config.n_layer
 
@@ -575,6 +581,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
         >>> loss, logits = outputs[:2]
 
     """
+
     def __init__(self, config):
         super(GPT2LMHeadModel, self).__init__(config)
         self.transformer = GPT2Model(config)
@@ -693,6 +700,7 @@ class GPT2DoubleHeadsModel(GPT2PreTrainedModel):
         >>> lm_prediction_scores, mc_prediction_scores = outputs[:2]
 
     """
+
     def __init__(self, config):
         super(GPT2DoubleHeadsModel, self).__init__(config)
         self.transformer = GPT2Model(config)
@@ -714,7 +722,6 @@ class GPT2DoubleHeadsModel(GPT2PreTrainedModel):
                                                past=past, head_mask=head_mask)
         hidden_states = transformer_outputs[0]
         all_attentions = ()
-
 
         lm_logits = self.lm_head(hidden_states)
         mc_logits = self.multiple_choice_head(hidden_states, mc_token_ids).squeeze(-1)

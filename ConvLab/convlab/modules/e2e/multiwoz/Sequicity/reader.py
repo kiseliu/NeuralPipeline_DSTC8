@@ -501,7 +501,7 @@ class KvretReader(_ReaderBase):
         random.shuffle(self.train)
         random.shuffle(self.dev)
         random.shuffle(self.test)
-		
+
         train_json.close()
         dev_json.close()
         test_json.close()
@@ -509,8 +509,8 @@ class KvretReader(_ReaderBase):
 
     def _save_tokenized_data(self, data, filename):
         path = self.tokenized_data_path + filename + '.tokenized.json'
-        f = open(path,'w')
-        json.dump(data,f,indent=2)
+        f = open(path, 'w')
+        json.dump(data, f, indent=2)
         f.close()
 
     def _load_tokenized_data(self, filename):
@@ -556,7 +556,7 @@ class KvretReader(_ReaderBase):
             if lm1 == lm2 and lm1 not in prev_user_input and v not in prev_user_input:
                 response = clean_replace(response, response[start_idx:end_idx], k + '_SLOT')
                 reqs.add(k)
-        return response,reqs
+        return response, reqs
 
     def _clean_constraint_dict(self, constraint_dict, intent, prefer='short'):
         """
@@ -689,7 +689,7 @@ class KvretReader(_ReaderBase):
             if add_to_vocab:
                 for single_turn in tokenized_dial:
                     for word_token in single_turn['constraint'] + single_turn['requested'] + \
-                            single_turn['user'] + single_turn['response']:
+                                      single_turn['user'] + single_turn['response']:
                         self.vocab.add_item(word_token)
             tokenized_data.append(tokenized_dial)
         self._save_tokenized_data(tokenized_data, data_type)
@@ -750,7 +750,7 @@ class KvretReader(_ReaderBase):
 
     def db_degree_handler(self, z_samples, idx=None, *args, **kwargs):
         control_vec = []
-        for i,cons_idx_list in enumerate(z_samples):
+        for i, cons_idx_list in enumerate(z_samples):
             constraints = set()
             for cons in cons_idx_list:
                 if not isinstance(cons, str):
@@ -763,6 +763,7 @@ class KvretReader(_ReaderBase):
             control_vec.append(self._degree_vec_mapping(degree))
         return np.array(control_vec)
 
+
 class MultiWozReader(_ReaderBase):
     def __init__(self):
         super().__init__()
@@ -770,8 +771,9 @@ class MultiWozReader(_ReaderBase):
         self.result_file = ''
 
     def _get_tokenized_data(self, raw_data, db_data, construct_vocab):
-        requestable_keys = ['addr', 'area', 'fee', 'name', 'phone', 'post', 'price', 'type', 'department', 'internet', 'parking', 'stars', 'food', 'arrive', 'day', 'depart', 'dest', 'leave', 'ticket', 'id']
-        
+        requestable_keys = ['addr', 'area', 'fee', 'name', 'phone', 'post', 'price', 'type', 'department', 'internet',
+                            'parking', 'stars', 'food', 'arrive', 'day', 'depart', 'dest', 'leave', 'ticket', 'id']
+
         tokenized_data = []
         vk_map = self._value_key_map(db_data)
         for dial_id, dial in enumerate(raw_data):
@@ -840,26 +842,27 @@ class MultiWozReader(_ReaderBase):
             string = re.sub(r'_+', '_', string)
             string = re.sub(r'children', 'child_-s', string)
             return string
-        requestable_dict = {'address':'addr', 
-                            'area':'area',
-                            'entrance fee':'fee',
-                            'name':'name',
-                            'phone':'phone', 
-                            'postcode':'post',
-                            'pricerange':'price', 
-                            'type':'type',
-                            'department':'department',
-                            'internet':'internet',
-                            'parking':'parking',
-                            'stars':'stars',
-                            'food':'food',
-                            'arriveBy':'arrive',
-                            'day':'day',
-                            'departure':'depart',
-                            'destination':'dest',
-                            'leaveAt':'leave',
-                            'price':'ticket',
-                            'trainId':'id'}
+
+        requestable_dict = {'address': 'addr',
+                            'area': 'area',
+                            'entrance fee': 'fee',
+                            'name': 'name',
+                            'phone': 'phone',
+                            'postcode': 'post',
+                            'pricerange': 'price',
+                            'type': 'type',
+                            'department': 'department',
+                            'internet': 'internet',
+                            'parking': 'parking',
+                            'stars': 'stars',
+                            'food': 'food',
+                            'arriveBy': 'arrive',
+                            'day': 'day',
+                            'departure': 'depart',
+                            'destination': 'dest',
+                            'leaveAt': 'leave',
+                            'price': 'ticket',
+                            'trainId': 'id'}
         value_key = {}
         for db_entry in db_data:
             for k, v in db_entry.items():
@@ -930,7 +933,7 @@ class MultiWozReader(_ReaderBase):
                 db_data += json.loads(f.read().lower())
         self._get_clean_db(db_data)
         self.db = db_data
-        
+
         train_tokenized_data = self._get_tokenized_data(train_raw_data, db_data, construct_vocab)
         dev_tokenized_data = self._get_tokenized_data(dev_raw_data, db_data, construct_vocab)
         test_tokenized_data = self._get_tokenized_data(test_raw_data, db_data, construct_vocab)
@@ -958,7 +961,7 @@ class MultiWozReader(_ReaderBase):
             if match:
                 match_results.append(entry)
         return match_results
-    
+
     def wrap_result(self, turn_batch, gen_m, gen_z, eos_syntax=None, prev_z=None):
         """
         wrap generated results
@@ -990,12 +993,12 @@ class MultiWozReader(_ReaderBase):
                 entry['generated_response'] = self.vocab.sentence_decode(gen_m[i], eos='EOS_M')
                 constraint_request = entry['generated_bspan'].split()
                 constraints = constraint_request[:constraint_request.index('EOS_Z1')] if 'EOS_Z1' \
-                    in constraint_request else constraint_request
+                                                                                         in constraint_request else constraint_request
                 for j, ent in enumerate(constraints):
                     constraints[j] = ent.replace('_', ' ')
                 degree = self.db_search(constraints)
-                #print('constraints',constraints)
-                #print('degree',degree)
+                # print('constraints',constraints)
+                # print('degree',degree)
                 venue = random.sample(degree, 1)[0] if degree else dict()
                 l = [self.vocab.decode(_) for _ in gen_m[i]]
                 if 'EOS_M' in l:
@@ -1036,6 +1039,7 @@ class MultiWozReader(_ReaderBase):
             writer.writeheader()
         writer.writerows(results)
         return results
+
 
 def pad_sequences(sequences, maxlen=None, dtype='int32',
                   padding='pre', truncating='pre', value=0.):

@@ -4,8 +4,10 @@
 """
 """
 
+
 class ErrorNLU:
     """Base model for generating NLU error."""
+
     def __init__(self, act_type_rate=0.0, slot_rate=0.0):
         """
         Args:
@@ -32,5 +34,5 @@ class ErrorNLU:
         Returns:
             dialog_act (tuple): Dialog act with noise.
         """
-        #TODO
+        # TODO
         return

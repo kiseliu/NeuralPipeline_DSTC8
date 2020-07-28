@@ -14,11 +14,12 @@ from convlab.modules.util.multiwoz.multiwoz_slot_trans import REF_SYS_DA
 
 class RuleDST(Tracker):
     """Rule based DST which trivially updates new values from NLU result to states."""
+
     def __init__(self):
         Tracker.__init__(self)
         self.state = init_state()
         prefix = os.path.dirname(os.path.dirname(convlab.__file__))
-        self.value_dict = json.load(open(prefix+'/data/multiwoz/value_dict.json'))
+        self.value_dict = json.load(open(prefix + '/data/multiwoz/value_dict.json'))
 
     def update(self, user_act=None):
         # print('------------------{}'.format(user_act))
@@ -73,7 +74,7 @@ class RuleDST(Tracker):
         new_state['user_action'] = user_act
 
         self.state = new_state
-        
+
         return self.state
 
     def init_session(self):

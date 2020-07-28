@@ -37,8 +37,10 @@ from .modeling_bert import BertLayerNorm as LayerNorm
 
 logger = logging.getLogger(__name__)
 
-OPENAI_GPT_PRETRAINED_MODEL_ARCHIVE_MAP = {"openai-gpt": "https://s3.amazonaws.com/models.huggingface.co/bert/openai-gpt-pytorch_model.bin"}
-OPENAI_GPT_PRETRAINED_CONFIG_ARCHIVE_MAP = {"openai-gpt": "https://s3.amazonaws.com/models.huggingface.co/bert/openai-gpt-config.json"}
+OPENAI_GPT_PRETRAINED_MODEL_ARCHIVE_MAP = {
+    "openai-gpt": "https://s3.amazonaws.com/models.huggingface.co/bert/openai-gpt-pytorch_model.bin"}
+OPENAI_GPT_PRETRAINED_CONFIG_ARCHIVE_MAP = {
+    "openai-gpt": "https://s3.amazonaws.com/models.huggingface.co/bert/openai-gpt-config.json"}
 
 
 def load_tf_weights_in_openai_gpt(model, config, openai_checkpoint_folder_path):
@@ -79,7 +81,7 @@ def load_tf_weights_in_openai_gpt(model, config, openai_checkpoint_folder_path):
     init_params.pop(0)
     init_params.pop(0)
 
-    for name, array in zip(names, init_params): # names[1:n_transfer], init_params[1:n_transfer]):
+    for name, array in zip(names, init_params):  # names[1:n_transfer], init_params[1:n_transfer]):
         name = name[6:]  # skip "model/"
         assert name[-2:] == ":0"
         name = name[:-2]
@@ -155,35 +157,35 @@ class OpenAIGPTConfig(PretrainedConfig):
     pretrained_config_archive_map = OPENAI_GPT_PRETRAINED_CONFIG_ARCHIVE_MAP
 
     def __init__(
-        self,
-        vocab_size_or_config_json_file=40478,
-        n_positions=512,
-        n_ctx=512,
-        n_embd=768,
-        n_layer=12,
-        n_head=12,
-        afn="gelu",
-        resid_pdrop=0.1,
-        embd_pdrop=0.1,
-        attn_pdrop=0.1,
-        layer_norm_epsilon=1e-5,
-        initializer_range=0.02,
-        predict_special_tokens=True,
+            self,
+            vocab_size_or_config_json_file=40478,
+            n_positions=512,
+            n_ctx=512,
+            n_embd=768,
+            n_layer=12,
+            n_head=12,
+            afn="gelu",
+            resid_pdrop=0.1,
+            embd_pdrop=0.1,
+            attn_pdrop=0.1,
+            layer_norm_epsilon=1e-5,
+            initializer_range=0.02,
+            predict_special_tokens=True,
 
-        num_labels=1,
-        summary_type='token_ids',
-        summary_use_proj=True,
-        summary_activation=None,
-        summary_proj_to_labels=True,
-        summary_first_dropout=0.1,
-        **kwargs
+            num_labels=1,
+            summary_type='token_ids',
+            summary_use_proj=True,
+            summary_activation=None,
+            summary_proj_to_labels=True,
+            summary_first_dropout=0.1,
+            **kwargs
     ):
         """Constructs OpenAIGPTConfig.
         """
         super(OpenAIGPTConfig, self).__init__(**kwargs)
 
         if isinstance(vocab_size_or_config_json_file, str) or (sys.version_info[0] == 2
-                        and isinstance(vocab_size_or_config_json_file, unicode)):
+                                                               and isinstance(vocab_size_or_config_json_file, unicode)):
             with open(vocab_size_or_config_json_file, "r", encoding="utf-8") as reader:
                 json_config = json.loads(reader.read())
             for key, value in json_config.items():
@@ -258,7 +260,7 @@ class Attention(nn.Module):
             mask[head] = 0
         mask = mask.view(-1).contiguous().eq(1)
         index = torch.arange(len(mask))[mask].long()
-        index_attn = torch.cat([index, index + self.split_size, index + (2*self.split_size)])
+        index_attn = torch.cat([index, index + self.split_size, index + (2 * self.split_size)])
         # Prune conv1d layers
         self.c_attn = prune_conv1d_layer(self.c_attn, index_attn, dim=1)
         self.c_proj = prune_conv1d_layer(self.c_proj, index, dim=0)
@@ -422,8 +424,10 @@ OPENAI_GPT_INPUTS_DOCSTRING = r"""    Inputs:
             ``1`` indicates the head is **not masked**, ``0`` indicates the head is **masked**.
 """
 
-@add_start_docstrings("The bare OpenAI GPT transformer model outputing raw hidden-states without any specific head on top.",
-                      OPENAI_GPT_START_DOCSTRING, OPENAI_GPT_INPUTS_DOCSTRING)
+
+@add_start_docstrings(
+    "The bare OpenAI GPT transformer model outputing raw hidden-states without any specific head on top.",
+    OPENAI_GPT_START_DOCSTRING, OPENAI_GPT_INPUTS_DOCSTRING)
 class OpenAIGPTModel(OpenAIGPTPreTrainedModel):
     r"""
     Outputs: `Tuple` comprising various elements depending on the configuration (config) and inputs:
@@ -447,6 +451,7 @@ class OpenAIGPTModel(OpenAIGPTPreTrainedModel):
         >>> last_hidden_states = outputs[0]  # The last hidden-state is the first element of the output tuple
 
     """
+
     def __init__(self, config):
         super(OpenAIGPTModel, self).__init__(config)
         self.output_attentions = config.output_attentions
@@ -488,8 +493,10 @@ class OpenAIGPTModel(OpenAIGPTPreTrainedModel):
                 head_mask = head_mask.unsqueeze(0).unsqueeze(0).unsqueeze(-1).unsqueeze(-1)
                 head_mask = head_mask.expand(self.config.n_layer, -1, -1, -1, -1)
             elif head_mask.dim() == 2:
-                head_mask = head_mask.unsqueeze(1).unsqueeze(-1).unsqueeze(-1)  # We can specify head_mask for each layer
-            head_mask = head_mask.to(dtype=next(self.parameters()).dtype) # switch to fload if need + fp16 compatibility
+                head_mask = head_mask.unsqueeze(1).unsqueeze(-1).unsqueeze(
+                    -1)  # We can specify head_mask for each layer
+            head_mask = head_mask.to(
+                dtype=next(self.parameters()).dtype)  # switch to fload if need + fp16 compatibility
         else:
             head_mask = [None] * self.config.n_layer
 
@@ -566,6 +573,7 @@ class OpenAIGPTLMHeadModel(OpenAIGPTPreTrainedModel):
         >>> loss, logits = outputs[:2]
 
     """
+
     def __init__(self, config):
         super(OpenAIGPTLMHeadModel, self).__init__(config)
         self.transformer = OpenAIGPTModel(config)
@@ -675,6 +683,7 @@ class OpenAIGPTDoubleHeadsModel(OpenAIGPTPreTrainedModel):
         >>> lm_prediction_scores, mc_prediction_scores = outputs[:2]
 
     """
+
     def __init__(self, config):
         super(OpenAIGPTDoubleHeadsModel, self).__init__(config)
 

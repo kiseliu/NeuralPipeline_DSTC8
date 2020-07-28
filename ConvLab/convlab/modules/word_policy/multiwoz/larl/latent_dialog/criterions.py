@@ -70,28 +70,28 @@ class CombinedNLLEntropy4CLF(_Loss):
         batch_size = len(goals_id)
         losses = []
         for bth in range(batch_size):
-            pred = preds[bth] # (outcome_len, outcome_vocab_size)
-            goal = goals_id[bth] # list, id, len=goal_len
-            goal_str = self.corpus.id2goal(goal) # list, str, len=goal_len
-            outcome = outcomes_id[bth] # list, id, len=outcome_len
-            outcome_str = self.corpus.id2outcome(outcome) # list, str, len=outcome_len
+            pred = preds[bth]  # (outcome_len, outcome_vocab_size)
+            goal = goals_id[bth]  # list, id, len=goal_len
+            goal_str = self.corpus.id2goal(goal)  # list, str, len=goal_len
+            outcome = outcomes_id[bth]  # list, id, len=outcome_len
+            outcome_str = self.corpus.id2outcome(outcome)  # list, str, len=outcome_len
 
             if outcome_str[0] in self.bad_tokens:
                 continue
 
             # get all the possible choices
             choices = self.domain.generate_choices(goal_str)
-            sel_outs = [pred[i] for i in range(pred.size(0))] # outcome_len*(outcome_vocab_size, )
+            sel_outs = [pred[i] for i in range(pred.size(0))]  # outcome_len*(outcome_vocab_size, )
 
-            choices_logits = [] # outcome_len*(option_amount, 1)
+            choices_logits = []  # outcome_len*(option_amount, 1)
             for i in range(self.domain.selection_length()):
                 idxs = np.array([self.dictionary[c[i]] for c in choices])
-                idxs_var = self.np2var(idxs, LONG) # (option_amount, )
+                idxs_var = self.np2var(idxs, LONG)  # (option_amount, )
                 choices_logits.append(th.gather(sel_outs[i], 0, idxs_var).unsqueeze(1))
 
-            choice_logit = th.sum(th.cat(choices_logits, 1), 1, keepdim=False) # (option_amount, )
-            choice_logit = choice_logit.sub(choice_logit.max().item()) # (option_amount, )
-            prob = F.softmax(choice_logit, dim=0) # (option_amount, )
+            choice_logit = th.sum(th.cat(choices_logits, 1), 1, keepdim=False)  # (option_amount, )
+            choice_logit = choice_logit.sub(choice_logit.max().item())  # (option_amount, )
+            prob = F.softmax(choice_logit, dim=0)  # (option_amount, )
 
             label = choices.index(outcome_str)
             target_prob = prob[label]
@@ -112,7 +112,7 @@ class CatKLLoss(_Loss):
         if unit_average:
             return th.mean(y_kl)
         else:
-            return th.sum(y_kl)/batch_size
+            return th.sum(y_kl) / batch_size
 
 
 class Entropy(_Loss):

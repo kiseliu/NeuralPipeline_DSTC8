@@ -16,22 +16,24 @@ class FixedList(list):
     def append(self, e):
         pass
 
+
 NEW_LVLS = {'NL': 17, 'ACT': 14, 'STATE': 13}
 for name, val in NEW_LVLS.items():
     logging.addLevelName(val, name)
     setattr(logging, name, val)
 
 LOG_FORMAT = '[%(asctime)s PID:%(process)d %(levelname)s %(filename)s %(funcName)s] %(message)s'
-color_formatter = colorlog.ColoredFormatter('%(log_color)s[%(asctime)s PID:%(process)d %(levelname)s %(filename)s %(funcName)s]%(reset)s %(message)s',
-log_colors={
-		'DEBUG':    'cyan',
-		'NL':       'cyan',
-		'ACT':      'cyan',
-		'STATE':    'cyan',
-		'INFO':     'green',
-		'WARNING':  'yellow',
-		'ERROR':    'red',
-		'CRITICAL': 'red,bg_white'})
+color_formatter = colorlog.ColoredFormatter(
+    '%(log_color)s[%(asctime)s PID:%(process)d %(levelname)s %(filename)s %(funcName)s]%(reset)s %(message)s',
+    log_colors={
+        'DEBUG': 'cyan',
+        'NL': 'cyan',
+        'ACT': 'cyan',
+        'STATE': 'cyan',
+        'INFO': 'green',
+        'WARNING': 'yellow',
+        'ERROR': 'red',
+        'CRITICAL': 'red,bg_white'})
 sh = logging.StreamHandler(sys.stdout)
 sh.setFormatter(color_formatter)
 lab_logger = logging.getLogger()

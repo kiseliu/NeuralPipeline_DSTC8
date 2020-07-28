@@ -14,6 +14,7 @@ def read_json(filename):
     with open(filename, 'r') as f:
         return json.load(f)
 
+
 # supported slot
 slot2word = {
     'Fee': 'fee',
@@ -74,7 +75,7 @@ class MultiwozTemplateNLG(NLG):
         mode = self.mode
         try:
             is_user = self.is_user
-            if mode=='manual':
+            if mode == 'manual':
                 if is_user:
                     template = self.manual_user_template
                 else:
@@ -82,7 +83,7 @@ class MultiwozTemplateNLG(NLG):
 
                 return self._manual_generate(dialog_acts, template)
 
-            elif mode=='auto':
+            elif mode == 'auto':
                 if is_user:
                     template = self.auto_user_template
                 else:
@@ -90,7 +91,7 @@ class MultiwozTemplateNLG(NLG):
 
                 return self._auto_generate(dialog_acts, template)
 
-            elif mode=='auto_manual':
+            elif mode == 'auto_manual':
                 if is_user:
                     template1 = self.auto_user_template
                     template2 = self.manual_user_template
@@ -110,7 +111,7 @@ class MultiwozTemplateNLG(NLG):
             pprint(dialog_acts)
             raise e
 
-    def _postprocess(self,sen):
+    def _postprocess(self, sen):
         sen_strip = sen.strip()
         sen = ''.join([val.capitalize() if i == 0 else val for i, val in enumerate(sen_strip)])
         if len(sen) > 0 and sen[-1] != '?' and sen[-1] != '.':
@@ -122,7 +123,7 @@ class MultiwozTemplateNLG(NLG):
         sentences = ''
         for dialog_act, slot_value_pairs in dialog_acts.items():
             intent = dialog_act.split('-')
-            if 'Select'==intent[1]:
+            if 'Select' == intent[1]:
                 slot2values = {}
                 for slot, value in slot_value_pairs:
                     slot2values.setdefault(slot, [])
@@ -137,7 +138,7 @@ class MultiwozTemplateNLG(NLG):
                             sentence += ' , ' + value
                     sentence += ' {} ? '.format(slot2word[slot])
                     sentences += sentence
-            elif 'Request'==intent[1]:
+            elif 'Request' == intent[1]:
                 for slot, value in slot_value_pairs:
                     if dialog_act not in template or slot not in template[dialog_act]:
                         sentence = 'What is the {} of {} ? '.format(slot, dialog_act.split('-')[0].lower())
@@ -146,7 +147,7 @@ class MultiwozTemplateNLG(NLG):
                         sentence = random.choice(template[dialog_act][slot])
                         sentence = self._postprocess(sentence)
                         sentences += sentence
-            elif 'general'==intent[0] and dialog_act in template:
+            elif 'general' == intent[0] and dialog_act in template:
                 sentence = random.choice(template[dialog_act]['none'])
                 sentence = self._postprocess(sentence)
                 sentences += sentence

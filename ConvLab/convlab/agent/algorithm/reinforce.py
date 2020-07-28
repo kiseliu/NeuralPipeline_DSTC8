@@ -160,7 +160,8 @@ class Reinforce(Algorithm):
             self.net.train_step(loss, self.optim, self.lr_scheduler, clock=clock, global_net=self.global_net)
             # reset
             self.to_train = 0
-            logger.info(f'Trained {self.name} at epi: {clock.epi}, frame: {clock.frame}, t: {clock.t}, total_reward so far: {self.body.total_reward}, loss: {loss:g}')
+            logger.info(
+                f'Trained {self.name} at epi: {clock.epi}, frame: {clock.frame}, t: {clock.t}, total_reward so far: {self.body.total_reward}, loss: {loss:g}')
             return loss.item()
         else:
             return np.nan
@@ -204,6 +205,7 @@ class WarmUpReinforce(Reinforce):
         "training_frequency": 1,
     }
     '''
+
     def __init__(self, agent, global_nets=None):
         super().__init__(agent, global_nets)
         util.set_attr(self, self.algorithm_spec, [

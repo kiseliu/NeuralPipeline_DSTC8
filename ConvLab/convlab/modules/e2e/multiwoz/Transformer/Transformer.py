@@ -4,7 +4,7 @@ import copy
 import torch
 import torch.nn.functional as F
 import json
-from convlab.modules.e2e.multiwoz.Transformer.train import SPECIAL_TOKENS_V1, SPECIAL_TOKENS_V4,\
+from convlab.modules.e2e.multiwoz.Transformer.train import SPECIAL_TOKENS_V1, SPECIAL_TOKENS_V4, \
     build_input_from_segments_v1, act_name, slot_name
 from convlab.modules.util.multiwoz.dbquery import query
 from convlab.modules.e2e.multiwoz.Transformer.pytorch_transformers import GPT2DoubleHeadsModel, GPT2Tokenizer
@@ -12,8 +12,9 @@ from convlab.modules.e2e.multiwoz.Transformer.util import download_model_from_go
 from spacy.symbols import ORTH
 from convlab.modules.policy.system.policy import SysPolicy
 
-DEFAULT_CUDA_DEVICE=-1
+DEFAULT_CUDA_DEVICE = -1
 DEFAULT_DIRECTORY = "models"
+
 
 class Transformer(SysPolicy):
 
@@ -156,7 +157,6 @@ class Transformer(SysPolicy):
                     b += 1
 
             if prev.item() in eos:
-
                 break
 
             if prev.item() in dptok:
@@ -215,7 +215,6 @@ class Transformer(SysPolicy):
             if prev.item() in sys:
 
                 if dp_count == 0:
-
                     # X = ['<bos>'] + ['<usr>'] + [self.tokenizer.decode([x]) for x in history[0]] + ['<cs>'] + [
                     #     self.tokenizer.decode([x]) for x in cs]
                     # Y = [self.tokenizer.decode([x]) for x in dp]
@@ -300,11 +299,9 @@ class Transformer(SysPolicy):
                     b += 1
 
             if prev.item() in eos:
-
                 break
 
             if prev.item() in dptok:
-
 
                 if cs_count == 0:
 
@@ -344,10 +341,10 @@ class Transformer(SysPolicy):
 
                                 else:
                                     if k == 'arriveby':
-                                        constraints.append(['arriveBy',  self.prev_cs[k]])
+                                        constraints.append(['arriveBy', self.prev_cs[k]])
 
                                     elif k == 'leaveat':
-                                        constraints.append(['leaveAt',  self.prev_cs[k]])
+                                        constraints.append(['leaveAt', self.prev_cs[k]])
                                     else:
                                         constraints.append([k, self.prev_cs[k]])
 
@@ -365,10 +362,10 @@ class Transformer(SysPolicy):
                                         constraints.append([k, 'dontcare'])
                                 else:
                                     if k == 'arriveby':
-                                        constraints.append(['arriveBy',  cs_dict[k]])
+                                        constraints.append(['arriveBy', cs_dict[k]])
 
                                     elif k == 'leaveat':
-                                        constraints.append(['leaveAt',  cs_dict[k]])
+                                        constraints.append(['leaveAt', cs_dict[k]])
                                     else:
                                         constraints.append([k, cs_dict[k]])
                                 cs_key.append(k)

@@ -23,11 +23,11 @@ device = "cuda"
 start_batch = 0
 MAX_RES_LEN = 10
 
-
 HDD = 400
 decoder = 'TRADE'
 BSZ = 32
 MAX_QUERY_LENGTH = 200
+
 
 class RenameUnpickler(pickle.Unpickler):
     def find_class(self, module, name):
@@ -230,7 +230,7 @@ class TRADETracker(Tracker):
                 query += ' ; ' + normalize_text(user_ut)
             else:
                 query += ' ; ' + \
-                    normalize_text(sys_ut) + ' ; ' + normalize_text(user_ut)
+                         normalize_text(sys_ut) + ' ; ' + normalize_text(user_ut)
         len_ = len(query)
         query = query[-1 * min(len_, MAX_QUERY_LENGTH):]
         # print(query)
@@ -247,7 +247,7 @@ class TRADETracker(Tracker):
                 if domain not in result:
                     result[domain] = {}
                 result[domain][key] = 0
-        return result    
+        return result
 
 
 def test_update():

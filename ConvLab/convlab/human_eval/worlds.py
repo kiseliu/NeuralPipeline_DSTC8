@@ -159,7 +159,7 @@ class RuleBot(object):
     def act(self):
         resp = requests.post('http://localhost:10003', json={'input': self.input,
                                                              'state': self.state,
-                                                             'recommend_flag':self.rule_bot_recommend_flag})
+                                                             'recommend_flag': self.rule_bot_recommend_flag})
         if resp.status_code != 200:
             raise Exception('POST /tasks/ {}'.format(resp.status_code))
         else:

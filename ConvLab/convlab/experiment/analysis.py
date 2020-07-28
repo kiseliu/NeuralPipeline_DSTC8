@@ -59,7 +59,7 @@ def gen_result(agent, env):
             _return = gen_return(agent, env)
     # exit eval context, restore variables simply by updating
     agent.algorithm.update()
-    return _return 
+    return _return
 
 
 def gen_avg_result(agent, env, num_eval=NUM_EVAL):
@@ -67,9 +67,9 @@ def gen_avg_result(agent, env, num_eval=NUM_EVAL):
     for _ in range(num_eval):
         returns.append(gen_result(agent, env))
         lens.append(env.clock.t)
-        if env.evaluator: 
+        if env.evaluator:
             successes.append(env.evaluator.task_success())
-            _p, _r, _f1 = env.evaluator.inform_F1() 
+            _p, _r, _f1 = env.evaluator.inform_F1()
             if _f1 is not None:
                 precs.append(_p)
                 recs.append(_r)
@@ -98,8 +98,8 @@ def calc_session_metrics(session_df, env_name, info_prepath=None, df_mode=None):
     @returns dict:metrics Consists of scalar metrics and series local metrics
     '''
     mean_return = session_df['avg_return'] if df_mode == 'eval' else session_df['avg_return']
-    mean_length = session_df['avg_len'] if df_mode == 'eval' else None 
-    mean_success = session_df['avg_success'] if df_mode == 'eval' else None 
+    mean_length = session_df['avg_len'] if df_mode == 'eval' else None
+    mean_success = session_df['avg_success'] if df_mode == 'eval' else None
     frames = session_df['frame']
     opt_steps = session_df['opt_step']
 

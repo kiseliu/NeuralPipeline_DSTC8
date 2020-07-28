@@ -69,7 +69,7 @@ class OneNet(Model):
         self.tag_projection_layer = TimeDistributed(Linear(self.encoder.get_output_dim(),
                                                            self.num_tags))
 
-        if self._feedforward is not None: 
+        if self._feedforward is not None:
             self.domain_projection_layer = Linear(feedforward.get_output_dim(), self.num_domains)
             self.intent_projection_layer = Linear(feedforward.get_output_dim(), self.num_intents)
         else:
@@ -96,8 +96,8 @@ class OneNet(Model):
         self.include_start_end_transitions = include_start_end_transitions
         if crf_decoding:
             self.crf = ConditionalRandomField(
-                    self.num_tags, constraints,
-                    include_start_end_transitions=include_start_end_transitions
+                self.num_tags, constraints,
+                include_start_end_transitions=include_start_end_transitions
             )
         else:
             self.crf = None
@@ -165,7 +165,7 @@ class OneNet(Model):
         intent_probs = F.softmax(intent_logits, dim=-1)
 
         output = {"tag_logits": tag_logits, "mask": mask, "tags": predicted_tags,
-        "domain_probs": domain_probs, "intent_probs": intent_probs}
+                  "domain_probs": domain_probs, "intent_probs": intent_probs}
 
         if tags is not None:
             if self.crf:
@@ -185,9 +185,9 @@ class OneNet(Model):
                 output["loss"] = loss
 
         if domain is not None:
-            output["loss"] += self.ce_loss(domain_logits, domain) 
+            output["loss"] += self.ce_loss(domain_logits, domain)
         if intent is not None:
-            output["loss"] += self.ce_loss(intent_logits, intent) 
+            output["loss"] += self.ce_loss(intent_logits, intent)
 
         if metadata:
             output["words"] = [x["words"] for x in metadata]
@@ -197,7 +197,6 @@ class OneNet(Model):
             self._dai_f1_metric(output["dialog_act"], [x["dialog_act"] for x in metadata])
 
         return output
-
 
     def get_predicted_tags(self, sequence_logits: torch.Tensor) -> torch.Tensor:
         """
@@ -215,7 +214,6 @@ class OneNet(Model):
             tags = np.argmax(predictions, axis=-1)
             all_tags.append(tags)
         return all_tags
- 
 
     @overrides
     def decode(self, output_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
@@ -225,36 +223,35 @@ class OneNet(Model):
         so we use an ugly nested list comprehension.
         """
         output_dict["tags"] = [
-                [self.vocab.get_token_from_index(tag, namespace=self.tag_label_namespace)
-                 for tag in instance_tags]
-                for instance_tags in output_dict["tags"]
+            [self.vocab.get_token_from_index(tag, namespace=self.tag_label_namespace)
+             for tag in instance_tags]
+            for instance_tags in output_dict["tags"]
         ]
 
         argmax_indices = np.argmax(output_dict["domain_probs"].detach().cpu().numpy(), axis=-1)
         output_dict["domain"] = [self.vocab.get_token_from_index(x, namespace="domain_labels")
-                       for x in argmax_indices]
+                                 for x in argmax_indices]
 
         argmax_indices = np.argmax(output_dict["intent_probs"].detach().cpu().numpy(), axis=-1)
         output_dict["intent"] = [self.vocab.get_token_from_index(x, namespace="intent_labels")
-                       for x in argmax_indices]
+                                 for x in argmax_indices]
 
-        output_dict["dialog_act"] = [] 
+        output_dict["dialog_act"] = []
         for i, domain in enumerate(output_dict["domain"]):
             if "+" not in output_dict["intent"][i]:
                 tags = []
                 seq_len = len(output_dict["words"][i])
                 for span in bio_tags_to_spans(output_dict["tags"][i][:seq_len]):
-                    tags.append([span[0], " ".join(output_dict["words"][i][span[1][0]: span[1][1]+1])])
+                    tags.append([span[0], " ".join(output_dict["words"][i][span[1][0]: span[1][1] + 1])])
                 intent = output_dict["intent"][i] if len(tags) > 0 else "None"
             else:
                 intent, value = output_dict["intent"][i].split("*", 1)
                 intent, slot = intent.split("+")
                 tags = [[slot, value]]
-            dialog_act = {domain+"-"+intent: tags} if domain != "None" and intent != "None" else {}
+            dialog_act = {domain + "-" + intent: tags} if domain != "None" and intent != "None" else {}
             output_dict["dialog_act"].append(dialog_act)
 
         return output_dict
-
 
     @overrides
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:

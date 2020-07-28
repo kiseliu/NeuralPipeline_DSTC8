@@ -29,62 +29,65 @@ from convlab.modules.word_policy.multiwoz.mdrg.utils.nlp import normalize
 DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))), 'data/nrg/mdrg')
 
+
 class Args(object):
     pass
+
+
 args = Args()
 args.no_cuda = True
-args.seed = 1 
-args.no_models = 20 
-args.original = DATA_PATH #'/home/sule/projects/research/multiwoz/model/model/'
-args.dropout = 0. 
-args.use_emb = 'False' 
-args.beam_width = 10 
-args.write_n_best = False 
+args.seed = 1
+args.no_models = 20
+args.original = DATA_PATH  # '/home/sule/projects/research/multiwoz/model/model/'
+args.dropout = 0.
+args.use_emb = 'False'
+args.beam_width = 10
+args.write_n_best = False
 args.model_path = os.path.join(DATA_PATH, 'translate.ckpt')
-args.model_dir = DATA_PATH + '/'  #'/home/sule/projects/research/multiwoz/model/model/'
+args.model_dir = DATA_PATH + '/'  # '/home/sule/projects/research/multiwoz/model/model/'
 args.model_name = 'translate.ckpt'
-args.valid_output = 'val_dials' #'/home/sule/projects/research/multiwoz/model/data/val_dials/'
-args.test_output = 'test_dials' #'/home/sule/projects/research/multiwoz/model/data/test_dials/'
+args.valid_output = 'val_dials'  # '/home/sule/projects/research/multiwoz/model/data/val_dials/'
+args.test_output = 'test_dials'  # '/home/sule/projects/research/multiwoz/model/data/test_dials/'
 
-args.batch_size=64
-args.vocab_size=400
+args.batch_size = 64
+args.vocab_size = 400
 
-args.use_attn=False
-args.attention_type='bahdanau'
-args.use_emb=False
+args.use_attn = False
+args.attention_type = 'bahdanau'
+args.use_emb = False
 
-args.emb_size=50
-args.hid_size_enc=150
-args.hid_size_dec=150
-args.hid_size_pol=150
-args.db_size=30
-args.bs_size=94
+args.emb_size = 50
+args.hid_size_enc = 150
+args.hid_size_dec = 150
+args.hid_size_pol = 150
+args.db_size = 30
+args.bs_size = 94
 
-args.cell_type='lstm'
-args.depth=1
-args.max_len=50
+args.cell_type = 'lstm'
+args.depth = 1
+args.max_len = 50
 
-args.optim='adam'
-args.lr_rate=0.005
-args.lr_decay=0.0
-args.l2_norm=0.00001
-args.clip=5.0
+args.optim = 'adam'
+args.lr_rate = 0.005
+args.lr_decay = 0.0
+args.l2_norm = 0.00001
+args.clip = 5.0
 
-args.teacher_ratio=1.0
-args.dropout=0.0
+args.teacher_ratio = 1.0
+args.dropout = 0.0
 
-args.no_cuda=True
+args.no_cuda = True
 
-args.seed=0
-args.train_output='train_dials' #'data/train_dials/'
+args.seed = 0
+args.train_output = 'train_dials'  # 'data/train_dials/'
 
-args.max_epochs=15
-args.early_stop_count=2
+args.max_epochs = 15
+args.early_stop_count = 2
 
-args.load_param=False
-args.epoch_load=0
+args.load_param = False
+args.epoch_load = 0
 
-args.mode='test'
+args.mode = 'test'
 
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 
@@ -124,7 +127,7 @@ def addBookingPointer(state, pointer_vector):
 
     train_vec = np.array([1, 0])
     if "book" in state['train']:
-        if "booked" in  state['train']['book']:
+        if "booked" in state['train']['book']:
             if state['train']['book']["booked"]:
                 if "reference" in state['train']['book']["booked"][0]:
                     train_vec = np.array([0, 1])
@@ -142,19 +145,20 @@ def addDBPointer(state):
     domains = ['restaurant', 'hotel', 'attraction', 'train']
     pointer_vector = np.zeros(6 * len(domains))
     db_results = {}
-    num_entities = {} 
+    num_entities = {}
     for domain in domains:
         # entities = dbPointer.queryResultVenues(domain, {'metadata': state})
         entities = dbquery.query(domain, state[domain]['semi'].items())
         num_entities[domain] = len(entities)
-        if len(entities) > 0: 
+        if len(entities) > 0:
             # fields = dbPointer.table_schema(domain)
             # db_results[domain] = dict(zip(fields, entities[0]))
             db_results[domain] = entities[0]
         # pointer_vector = dbPointer.oneHotVector(len(entities), domain, pointer_vector)
         pointer_vector = oneHotVector(len(entities), domain, pointer_vector)
 
-    return pointer_vector, db_results, num_entities 
+    return pointer_vector, db_results, num_entities
+
 
 def oneHotVector(num, domain, vector):
     """Return number of available entities for particular domain."""
@@ -163,7 +167,7 @@ def oneHotVector(num, domain, vector):
     if domain != 'train':
         idx = domains.index(domain)
         if num == 0:
-            vector[idx * 6: idx * 6 + 6] = np.array([1, 0, 0, 0, 0,0])
+            vector[idx * 6: idx * 6 + 6] = np.array([1, 0, 0, 0, 0, 0])
         elif num == 1:
             vector[idx * 6: idx * 6 + 6] = np.array([0, 1, 0, 0, 0, 0])
         elif num == 2:
@@ -224,7 +228,7 @@ def get_summary_bstate(bstate):
         domain_active = False
 
         booking = []
-        #print(domain,len(bstate[domain]['book'].keys()))
+        # print(domain,len(bstate[domain]['book'].keys()))
         for slot in sorted(bstate[domain]['book'].keys()):
             if slot == 'booked':
                 if bstate[domain]['book']['booked']:
@@ -247,7 +251,8 @@ def get_summary_bstate(bstate):
             slot_enc = [0, 0, 0]  # not mentioned, dontcare, filled
             if bstate[domain]['semi'][slot] == 'not mentioned':
                 slot_enc[0] = 1
-            elif bstate[domain]['semi'][slot] == 'dont care' or bstate[domain]['semi'][slot] == 'dontcare' or bstate[domain]['semi'][slot] == "don't care":
+            elif bstate[domain]['semi'][slot] == 'dont care' or bstate[domain]['semi'][slot] == 'dontcare' or \
+                    bstate[domain]['semi'][slot] == "don't care":
                 slot_enc[1] = 1
             elif bstate[domain]['semi'][slot]:
                 slot_enc[2] = 1
@@ -262,7 +267,7 @@ def get_summary_bstate(bstate):
             summary_bstate += [0]
 
     # pprint(summary_bstate)
-    #print(len(summary_bstate))
+    # print(len(summary_bstate))
     assert len(summary_bstate) == 94
     return summary_bstate
 
@@ -286,14 +291,14 @@ def populate_template(template, top_results, num_results, state):
                     response.append(str(num_results))
                 elif slot == 'place':
                     if 'arrive' in response:
-                        for d in state: 
+                        for d in state:
                             if d == 'history':
                                 continue
                             if 'destination' in state[d]['semi']:
                                 response.append(state[d]['semi']['destination'])
                                 break
                     elif 'leave' in response:
-                        for d in state: 
+                        for d in state:
                             if d == 'history':
                                 continue
                             if 'departure' in state[d]['semi']:
@@ -301,7 +306,7 @@ def populate_template(template, top_results, num_results, state):
                                 break
                     else:
                         try:
-                            for d in state: 
+                            for d in state:
                                 if d == 'history':
                                     continue
                                 for s in ['destination', 'departure']:
@@ -317,8 +322,8 @@ def populate_template(template, top_results, num_results, state):
                         if active_domain is not None and 'arriveBy' in top_results[active_domain]:
                             # print('{} -> {}'.format(token, top_results[active_domain]['arriveBy']))
                             response.append(top_results[active_domain]['arriveBy'])
-                            continue 
-                        for d in state: 
+                            continue
+                        for d in state:
                             if d == 'history':
                                 continue
                             if 'arriveBy' in state[d]['semi']:
@@ -328,8 +333,8 @@ def populate_template(template, top_results, num_results, state):
                         if active_domain is not None and 'leaveAt' in top_results[active_domain]:
                             # print('{} -> {}'.format(token, top_results[active_domain]['leaveAt']))
                             response.append(top_results[active_domain]['leaveAt'])
-                            continue 
-                        for d in state: 
+                            continue
+                        for d in state:
                             if d == 'history':
                                 continue
                             if 'leaveAt' in state[d]['semi']:
@@ -340,7 +345,7 @@ def populate_template(template, top_results, num_results, state):
                             response.append(state['restaurant']['book']['time'])
                     else:
                         try:
-                            for d in state: 
+                            for d in state:
                                 if d == 'history':
                                     continue
                                 for s in ['arriveBy', 'leaveAt']:
@@ -412,9 +417,9 @@ def mark_not_mentioned(state):
             continue
         try:
             # if len([s for s in state[domain]['semi'] if s != 'book' and state[domain]['semi'][s] != '']) > 0:
-                # for s in state[domain]['semi']:
-                #     if s != 'book' and state[domain]['semi'][s] == '':
-                #         state[domain]['semi'][s] = 'not mentioned'
+            # for s in state[domain]['semi']:
+            #     if s != 'book' and state[domain]['semi'][s] == '':
+            #         state[domain]['semi'][s] = 'not mentioned'
             for s in state[domain]['semi']:
                 if state[domain]['semi'][s] == '':
                     state[domain]['semi'][s] = 'not mentioned'
@@ -427,7 +432,9 @@ def mark_not_mentioned(state):
 def predict(model, prev_state, prev_active_domain, state, dic):
     start_time = time.time()
     model.beam_search = False
-    input_tensor = []; bs_tensor = []; db_tensor = []
+    input_tensor = [];
+    bs_tensor = [];
+    db_tensor = []
 
     usr = state['history'][-1][-1]
 
@@ -454,10 +461,10 @@ def predict(model, prev_state, prev_active_domain, state, dic):
     pointer_vector = addBookingPointer(state, pointer_vector)
     belief_summary = get_summary_bstate(state)
 
-    tensor = [model.input_word2index(word) for word in normalize(usr).strip(' ').split(' ')] + [util.EOS_token] 
-    input_tensor.append(torch.LongTensor(tensor))  
-    bs_tensor.append(belief_summary) #
-    db_tensor.append(pointer_vector) # db results and booking
+    tensor = [model.input_word2index(word) for word in normalize(usr).strip(' ').split(' ')] + [util.EOS_token]
+    input_tensor.append(torch.LongTensor(tensor))
+    bs_tensor.append(belief_summary)  #
+    db_tensor.append(pointer_vector)  # db results and booking
     # bs_tensor.append([0.] * 94) #
     # db_tensor.append([0.] * 30) # db results and booking
     # create an empty matrix with padding tokens
@@ -475,7 +482,7 @@ def predict(model, prev_state, prev_active_domain, state, dic):
     if active_domain is not None and active_domain in top_results:
         top_results = {active_domain: top_results[active_domain]}
     else:
-        top_results = {} 
+        top_results = {}
     response = populate_template(output_words[0], top_results, num_results, state)
     return response, active_domain
 
@@ -495,7 +502,7 @@ def get_active_domain(prev_active_domain, prev_state, state):
             active_domain = domain
     if active_domain is None:
         active_domain = prev_active_domain
-    return active_domain 
+    return active_domain
 
 
 def loadModel(num):
@@ -515,16 +522,18 @@ def loadModel(num):
 
     return model
 
+
 DEFAULT_CUDA_DEVICE = -1
 DEFAULT_DIRECTORY = "models"
 DEFAULT_ARCHIVE_FILE = os.path.join(DEFAULT_DIRECTORY, "milu.tar.gz")
 
+
 class MDRGWordPolicy(SysPolicy):
     def __init__(self,
-                archive_file=DEFAULT_ARCHIVE_FILE,
-                cuda_device=DEFAULT_CUDA_DEVICE,
-                model_file=None):
-        
+                 archive_file=DEFAULT_ARCHIVE_FILE,
+                 cuda_device=DEFAULT_CUDA_DEVICE,
+                 model_file=None):
+
         if not os.path.isfile(archive_file):
             if not model_file:
                 raise Exception("No model for MDRG is specified!")
@@ -545,17 +554,19 @@ class MDRGWordPolicy(SysPolicy):
             output_lang_index2word = json.load(f)
         with open(os.path.join(temp_path, 'mdrg/output_lang.word2index.json')) as f:
             output_lang_word2index = json.load(f)
-        self.response_model = Model(args, input_lang_index2word, output_lang_index2word, input_lang_word2index, output_lang_word2index)
+        self.response_model = Model(args, input_lang_index2word, output_lang_index2word, input_lang_word2index,
+                                    output_lang_word2index)
         self.response_model.loadModel(os.path.join(temp_path, 'mdrg/mdrg'))
 
         shutil.rmtree(temp_path)
 
         self.prev_state = init_state()
-        self.prev_active_domain = None 
+        self.prev_active_domain = None
 
     def predict(self, state):
         try:
-            response, active_domain = predict(self.response_model, self.prev_state, self.prev_active_domain, state, self.dic)
+            response, active_domain = predict(self.response_model, self.prev_state, self.prev_active_domain, state,
+                                              self.dic)
         except Exception as e:
             print('Response generation error', e)
             response = 'What did you say?'
@@ -563,7 +574,6 @@ class MDRGWordPolicy(SysPolicy):
         self.prev_state = deepcopy(state)
         self.prev_active_domain = active_domain
         return response
-
 
 
 if __name__ == '__main__':

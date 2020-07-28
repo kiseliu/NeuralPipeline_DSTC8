@@ -15,7 +15,8 @@ from convlab.lib import logger, util
 logger = logger.get_logger(__name__)
 
 # warn orca failure only once
-orca_warn_once = ps.once(lambda e: logger.warning(f'Failed to generate graph. Run retro-analysis to generate graphs later.'))
+orca_warn_once = ps.once(
+    lambda e: logger.warning(f'Failed to generate graph. Run retro-analysis to generate graphs later.'))
 if util.is_jupyter():
     init_notebook_mode(connected=True)
 
@@ -198,7 +199,8 @@ def plot_experiment(experiment_spec, experiment_df, metrics_cols):
     '''
     y_cols = metrics_cols
     x_cols = ps.difference(experiment_df.columns.tolist(), y_cols)
-    fig = tools.make_subplots(rows=len(y_cols), cols=len(x_cols), shared_xaxes=True, shared_yaxes=True, print_grid=False)
+    fig = tools.make_subplots(rows=len(y_cols), cols=len(x_cols), shared_xaxes=True, shared_yaxes=True,
+                              print_grid=False)
     strength_sr = experiment_df['strength']
     min_strength = strength_sr.values.min()
     max_strength = strength_sr.values.max()
@@ -207,8 +209,8 @@ def plot_experiment(experiment_spec, experiment_df, metrics_cols):
             x_sr = experiment_df[x]
             guard_cat_x = x_sr.astype(str) if x_sr.dtype == 'object' else x_sr
             trace = go.Scatter(
-                y=experiment_df[y], yaxis=f'y{row_idx+1}',
-                x=guard_cat_x, xaxis=f'x{col_idx+1}',
+                y=experiment_df[y], yaxis=f'y{row_idx + 1}',
+                x=guard_cat_x, xaxis=f'x{col_idx + 1}',
                 showlegend=False, mode='markers',
                 marker={
                     'symbol': 'circle-open-dot', 'color': experiment_df['strength'], 'opacity': 0.5,
@@ -218,8 +220,9 @@ def plot_experiment(experiment_spec, experiment_df, metrics_cols):
                 },
             )
             fig.add_trace(trace, row_idx + 1, col_idx + 1)
-            fig.layout[f'xaxis{col_idx+1}'].update(title='<br>'.join(ps.chunk(x, 20)), zerolinewidth=1, categoryarray=sorted(guard_cat_x.unique()))
-        fig.layout[f'yaxis{row_idx+1}'].update(title=y, rangemode='tozero')
+            fig.layout[f'xaxis{col_idx + 1}'].update(title='<br>'.join(ps.chunk(x, 20)), zerolinewidth=1,
+                                                     categoryarray=sorted(guard_cat_x.unique()))
+        fig.layout[f'yaxis{row_idx + 1}'].update(title=y, rangemode='tozero')
     fig.layout.update(
         title=f'experiment graph: {experiment_spec["name"]}',
         width=100 + 300 * len(x_cols), height=200 + 300 * len(y_cols))

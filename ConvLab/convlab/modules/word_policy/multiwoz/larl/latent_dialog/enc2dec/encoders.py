@@ -7,23 +7,25 @@ from convlab.modules.word_policy.multiwoz.larl.latent_dialog.enc2dec.base_module
 
 
 class EncoderRNN(BaseRNN):
-    def __init__(self, input_dropout_p, rnn_cell, input_size, hidden_size, num_layers, output_dropout_p, bidirectional, variable_lengths):
-        super(EncoderRNN, self).__init__(input_dropout_p=input_dropout_p, 
-                                         rnn_cell=rnn_cell, 
-                                         input_size=input_size, 
-                                         hidden_size=hidden_size, 
-                                         num_layers=num_layers, 
-                                         output_dropout_p=output_dropout_p, 
+    def __init__(self, input_dropout_p, rnn_cell, input_size, hidden_size, num_layers, output_dropout_p, bidirectional,
+                 variable_lengths):
+        super(EncoderRNN, self).__init__(input_dropout_p=input_dropout_p,
+                                         rnn_cell=rnn_cell,
+                                         input_size=input_size,
+                                         hidden_size=hidden_size,
+                                         num_layers=num_layers,
+                                         output_dropout_p=output_dropout_p,
                                          bidirectional=bidirectional)
         self.variable_lengths = variable_lengths
-        self.output_size = hidden_size*2 if bidirectional else hidden_size
+        self.output_size = hidden_size * 2 if bidirectional else hidden_size
 
     def forward(self, input_var, init_state=None, input_lengths=None, goals=None):
         # add goals
         if goals is not None:
             batch_size, max_ctx_len, ctx_nhid = input_var.size()
             goals = goals.view(goals.size(0), 1, goals.size(1))
-            goals_rep = goals.repeat(1, max_ctx_len, 1).view(batch_size, max_ctx_len, -1) # (batch_size, max_ctx_len, goal_nhid)
+            goals_rep = goals.repeat(1, max_ctx_len, 1).view(batch_size, max_ctx_len,
+                                                             -1)  # (batch_size, max_ctx_len, goal_nhid)
             input_var = th.cat([input_var, goals_rep], dim=2)
 
         embedded = self.input_dropout(input_var)
@@ -52,12 +54,12 @@ class RnnUttEncoder(nn.Module):
             self.embedding = embedding
 
         self.rnn = EncoderRNN(input_dropout_p=input_dropout_p,
-                              rnn_cell=rnn_cell, 
-                              input_size=embedding_dim+feat_size+goal_nhid, 
-                              hidden_size=utt_cell_size, 
-                              num_layers=num_layers, 
-                              output_dropout_p=output_dropout_p, 
-                              bidirectional=bidirectional, 
+                              rnn_cell=rnn_cell,
+                              input_size=embedding_dim + feat_size + goal_nhid,
+                              hidden_size=utt_cell_size,
+                              num_layers=num_layers,
+                              output_dropout_p=output_dropout_p,
+                              bidirectional=bidirectional,
                               variable_lengths=variable_lengths)
 
         self.utt_cell_size = utt_cell_size
@@ -71,19 +73,21 @@ class RnnUttEncoder(nn.Module):
     def forward(self, utterances, feats=None, init_state=None, goals=None):
         batch_size, max_ctx_len, max_utt_len = utterances.size()
         # get word embeddings
-        flat_words = utterances.view(-1, max_utt_len) # (batch_size*max_ctx_len, max_utt_len)
-        word_embeddings = self.embedding(flat_words) # (batch_size*max_ctx_len, max_utt_len, embedding_dim)
+        flat_words = utterances.view(-1, max_utt_len)  # (batch_size*max_ctx_len, max_utt_len)
+        word_embeddings = self.embedding(flat_words)  # (batch_size*max_ctx_len, max_utt_len, embedding_dim)
         flat_mask = th.sign(flat_words).float()
         # add features
         if feats is not None:
-            flat_feats = feats.view(-1, 1) # (batch_size*max_ctx_len, 1)
-            flat_feats = flat_feats.unsqueeze(1).repeat(1, max_utt_len, 1) # (batch_size*max_ctx_len, max_utt_len, 1)
-            word_embeddings = th.cat([word_embeddings, flat_feats], dim=2) # (batch_size*max_ctx_len, max_utt_len, embedding_dim+1)
+            flat_feats = feats.view(-1, 1)  # (batch_size*max_ctx_len, 1)
+            flat_feats = flat_feats.unsqueeze(1).repeat(1, max_utt_len, 1)  # (batch_size*max_ctx_len, max_utt_len, 1)
+            word_embeddings = th.cat([word_embeddings, flat_feats],
+                                     dim=2)  # (batch_size*max_ctx_len, max_utt_len, embedding_dim+1)
 
         # add goals
         if goals is not None:
             goals = goals.view(goals.size(0), 1, 1, goals.size(1))
-            goals_rep = goals.repeat(1, max_ctx_len, max_utt_len, 1).view(batch_size*max_ctx_len, max_utt_len, -1) # (batch_size*max_ctx_len, max_utt_len, goal_nhid)
+            goals_rep = goals.repeat(1, max_ctx_len, max_utt_len, 1).view(batch_size * max_ctx_len, max_utt_len,
+                                                                          -1)  # (batch_size*max_ctx_len, max_utt_len, goal_nhid)
             word_embeddings = th.cat([word_embeddings, goals_rep], dim=2)
 
         # enc_outs: (batch_size*max_ctx_len, max_utt_len, num_directions*utt_cell_size)
@@ -91,23 +95,25 @@ class RnnUttEncoder(nn.Module):
         enc_outs, enc_last = self.rnn(word_embeddings, init_state=init_state)
 
         if self.use_attn:
-            fc1 = th.tanh(self.key_w(enc_outs)) # (batch_size*max_ctx_len, max_utt_len, utt_cell_size)
+            fc1 = th.tanh(self.key_w(enc_outs))  # (batch_size*max_ctx_len, max_utt_len, utt_cell_size)
             attn = self.query(fc1).squeeze(2)
             # (batch_size*max_ctx_len, max_utt_len)
-            attn = F.softmax(attn, attn.dim()-1) # (batch_size*max_ctx_len, max_utt_len, 1)
+            attn = F.softmax(attn, attn.dim() - 1)  # (batch_size*max_ctx_len, max_utt_len, 1)
             attn = attn * flat_mask
-            attn = (attn / (th.sum(attn, dim=1, keepdim=True)+1e-10)).unsqueeze(2)
-            utt_embedded = attn * enc_outs # (batch_size*max_ctx_len, max_utt_len, num_directions*utt_cell_size)
-            utt_embedded = th.sum(utt_embedded, dim=1) # (batch_size*max_ctx_len, num_directions*utt_cell_size)
+            attn = (attn / (th.sum(attn, dim=1, keepdim=True) + 1e-10)).unsqueeze(2)
+            utt_embedded = attn * enc_outs  # (batch_size*max_ctx_len, max_utt_len, num_directions*utt_cell_size)
+            utt_embedded = th.sum(utt_embedded, dim=1)  # (batch_size*max_ctx_len, num_directions*utt_cell_size)
         else:
             # FIXME bug for multi-layer
             attn = None
-            utt_embedded = enc_last.transpose(0, 1).contiguous() # (batch_size*max_ctx_lens, num_layers*num_directions, utt_cell_size)
-            utt_embedded = utt_embedded.view(-1, self.output_size) # (batch_size*max_ctx_len*num_layers, num_directions*utt_cell_size)
+            utt_embedded = enc_last.transpose(0,
+                                              1).contiguous()  # (batch_size*max_ctx_lens, num_layers*num_directions, utt_cell_size)
+            utt_embedded = utt_embedded.view(-1,
+                                             self.output_size)  # (batch_size*max_ctx_len*num_layers, num_directions*utt_cell_size)
 
         utt_embedded = utt_embedded.view(batch_size, max_ctx_len, self.output_size)
-        return utt_embedded, word_embeddings.contiguous().view(batch_size, max_ctx_len*max_utt_len, -1), \
-               enc_outs.contiguous().view(batch_size, max_ctx_len*max_utt_len, -1)
+        return utt_embedded, word_embeddings.contiguous().view(batch_size, max_ctx_len * max_utt_len, -1), \
+               enc_outs.contiguous().view(batch_size, max_ctx_len * max_utt_len, -1)
 
 
 class MlpGoalEncoder(nn.Module):
@@ -120,7 +126,7 @@ class MlpGoalEncoder(nn.Module):
 
         self.encoder = nn.Sequential(
             nn.Tanh(),
-            nn.Linear(k*nembed, nhid) 
+            nn.Linear(k * nembed, nhid)
         )
 
         self.cnt_enc.weight.data.uniform_(-init_range, init_range)
@@ -137,9 +143,9 @@ class MlpGoalEncoder(nn.Module):
 
     def forward(self, goal):
         # goal: (batch_size, goal_len)
-        goal = goal.transpose(0, 1).contiguous() # (goal_len, batch_size)
+        goal = goal.transpose(0, 1).contiguous()  # (goal_len, batch_size)
         idx = np.arange(goal.size(0) // 2)
-        
+
         # extract counts and values
         cnt_idx = Variable(th.from_numpy(2 * idx + 0))
         val_idx = Variable(th.from_numpy(2 * idx + 1))
@@ -151,18 +157,18 @@ class MlpGoalEncoder(nn.Module):
             cnt_idx = cnt_idx.type(th.LongTensor)
             val_idx = val_idx.type(th.LongTensor)
 
-        cnt = goal.index_select(0, cnt_idx) # (3, batch_size)
-        val = goal.index_select(0, val_idx) # (3, batch_size)
+        cnt = goal.index_select(0, cnt_idx)  # (3, batch_size)
+        val = goal.index_select(0, val_idx)  # (3, batch_size)
 
         # embed counts and values
-        cnt_emb = self.cnt_enc(cnt) # (3, batch_size, nembed)
-        val_emb = self.val_enc(val) # (3, batch_size, nembed)
+        cnt_emb = self.cnt_enc(cnt)  # (3, batch_size, nembed)
+        val_emb = self.val_enc(val)  # (3, batch_size, nembed)
 
         # element wise multiplication to get a hidden state
-        h = th.mul(cnt_emb, val_emb) # (3, batch_size, nembed)
+        h = th.mul(cnt_emb, val_emb)  # (3, batch_size, nembed)
         # run the hidden state through the MLP
-        h = h.transpose(0, 1).contiguous().view(goal.size(1), -1) # (batch_size, 3*nembed)
-        goal_h = self.encoder(h) # (batch_size, nhid)
+        h = h.transpose(0, 1).contiguous().view(goal.size(1), -1)  # (batch_size, 3*nembed)
+        goal_h = self.encoder(h)  # (batch_size, nhid)
 
         return goal_h
 
@@ -170,11 +176,11 @@ class MlpGoalEncoder(nn.Module):
 class TaskMlpGoalEncoder(nn.Module):
     def __init__(self, goal_vocab_sizes, nhid, init_range):
         super(TaskMlpGoalEncoder, self).__init__()
-        
+
         self.encoder = nn.ModuleList()
         for v_size in goal_vocab_sizes:
             domain_encoder = nn.Sequential(
-                nn.Linear(v_size, nhid), 
+                nn.Linear(v_size, nhid),
                 nn.Tanh()
             )
             self._init_cont(domain_encoder, init_range)
@@ -190,8 +196,8 @@ class TaskMlpGoalEncoder(nn.Module):
 
     def forward(self, goals_list):
         # goals_list: list of tensor, 7*(batch_size, goal_len), goal_len varies among differnet domains
-        outs = [encoder.forward(goal) for goal, encoder in zip(goals_list, self.encoder)] # 7*(batch_size, goal_nhid)
-        outs = th.sum(th.stack(outs), dim=0) # (batch_size, goal_nhid)
+        outs = [encoder.forward(goal) for goal, encoder in zip(goals_list, self.encoder)]  # 7*(batch_size, goal_nhid)
+        outs = th.sum(th.stack(outs), dim=0)  # (batch_size, goal_nhid)
         return outs
 
 

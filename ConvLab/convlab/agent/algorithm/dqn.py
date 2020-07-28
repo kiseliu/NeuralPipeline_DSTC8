@@ -79,7 +79,8 @@ class VanillaDQN(SARSA):
     def init_nets(self, global_nets=None):
         '''Initialize the neural network used to learn the Q function from the spec'''
         if self.algorithm_spec['name'] == 'VanillaDQN':
-            assert all(k not in self.net_spec for k in ['update_type', 'update_frequency', 'polyak_coef']), 'Network update not available for VanillaDQN; use DQN.'
+            assert all(k not in self.net_spec for k in ['update_type', 'update_frequency',
+                                                        'polyak_coef']), 'Network update not available for VanillaDQN; use DQN.'
         in_dim = self.body.state_dim
         out_dim = net_util.get_out_dim(self.body)
         NetClass = getattr(net, self.net_spec['type'])
@@ -147,7 +148,8 @@ class VanillaDQN(SARSA):
             loss = total_loss / (self.training_iter * self.training_batch_iter)
             # reset
             self.to_train = 0
-            logger.debug(f'Trained {self.name} at epi: {clock.epi}, frame: {clock.frame}, t: {clock.t}, total_reward so far: {self.body.total_reward}, loss: {loss:g}')
+            logger.debug(
+                f'Trained {self.name} at epi: {clock.epi}, frame: {clock.frame}, t: {clock.t}, total_reward so far: {self.body.total_reward}, loss: {loss:g}')
             return loss.item()
         else:
             return np.nan
@@ -178,7 +180,8 @@ class DQNBase(VanillaDQN):
     def init_nets(self, global_nets=None):
         '''Initialize networks'''
         if self.algorithm_spec['name'] == 'DQNBase':
-            assert all(k not in self.net_spec for k in ['update_type', 'update_frequency', 'polyak_coef']), 'Network update not available for DQNBase; use DQN.'
+            assert all(k not in self.net_spec for k in ['update_type', 'update_frequency',
+                                                        'polyak_coef']), 'Network update not available for DQNBase; use DQN.'
         in_dim = self.body.state_dim
         out_dim = net_util.get_out_dim(self.body)
         NetClass = getattr(net, self.net_spec['type'])
@@ -255,6 +258,7 @@ class DQN(DQNBase):
         "training_start_step": 10
     }
     '''
+
     @lab_api
     def init_nets(self, global_nets=None):
         super().init_nets(global_nets)
@@ -284,6 +288,7 @@ class WarmUpDQN(DQN):
         "training_start_step": 10
     }
     '''
+
     def __init__(self, agent, global_nets=None):
         super().__init__(agent, global_nets)
         util.set_attr(self, self.algorithm_spec, [
@@ -319,12 +324,14 @@ class WarmUpDQN(DQN):
                 for batch in batches:
                     for _ in range(self.training_batch_iter):
                         loss = self.calc_q_loss(batch)
-                        self.net.train_step(loss, self.optim, self.lr_scheduler, clock=clock, global_net=self.global_net)
+                        self.net.train_step(loss, self.optim, self.lr_scheduler, clock=clock,
+                                            global_net=self.global_net)
                         total_loss += loss
             loss = total_loss / (self.training_iter * self.training_batch_iter)
             # reset
             self.to_train = 0
-            logger.info(f'Trained {self.name} at epi: {clock.epi}, warmup_size: {self.body.warmup_memory.size}, memory_size: {self.body.memory.size}, loss: {loss:g}')
+            logger.info(
+                f'Trained {self.name} at epi: {clock.epi}, warmup_size: {self.body.warmup_memory.size}, memory_size: {self.body.memory.size}, loss: {loss:g}')
             return loss.item()
         else:
             return np.nan
@@ -353,6 +360,7 @@ class DoubleDQN(DQN):
         "training_start_step": 10
     }
     '''
+
     @lab_api
     def init_nets(self, global_nets=None):
         super().init_nets(global_nets)

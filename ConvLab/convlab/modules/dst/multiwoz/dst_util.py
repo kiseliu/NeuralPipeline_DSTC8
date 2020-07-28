@@ -5,88 +5,88 @@ import re
 from difflib import SequenceMatcher
 
 init_belief_state = {
-        "police": {
-            "book": {
-                "booked": []
-            },
-            "semi": {}
+    "police": {
+        "book": {
+            "booked": []
         },
-        "hotel": {
-            "book": {
-                "booked": [],
-                "people": "",
-                "day": "",
-                "stay": ""
-            },
-            "semi": {
-                "name": "",
-                "area": "",
-                "parking": "",
-                "pricerange": "",
-                "stars": "",
-                "internet": "",
-                "type": ""
-            }
+        "semi": {}
+    },
+    "hotel": {
+        "book": {
+            "booked": [],
+            "people": "",
+            "day": "",
+            "stay": ""
         },
-        "attraction": {
-            "book": {
-                "booked": []
-            },
-            "semi": {
-                "type": "",
-                "name": "",
-                "area": "",
-                "entrance fee": ""
-            }
+        "semi": {
+            "name": "",
+            "area": "",
+            "parking": "",
+            "pricerange": "",
+            "stars": "",
+            "internet": "",
+            "type": ""
+        }
+    },
+    "attraction": {
+        "book": {
+            "booked": []
         },
-        "restaurant": {
-            "book": {
-                "booked": [],
-                "people": "",
-                "day": "",
-                "time": ""
-            },
-            "semi": {
-                "food": "",
-                "pricerange": "",
-                "name": "",
-                "area": "",
-            }
+        "semi": {
+            "type": "",
+            "name": "",
+            "area": "",
+            "entrance fee": ""
+        }
+    },
+    "restaurant": {
+        "book": {
+            "booked": [],
+            "people": "",
+            "day": "",
+            "time": ""
         },
-        "hospital": {
-            "book": {
-                "booked": []
-            },
-            "semi": {
-                "department": ""
-            }
+        "semi": {
+            "food": "",
+            "pricerange": "",
+            "name": "",
+            "area": "",
+        }
+    },
+    "hospital": {
+        "book": {
+            "booked": []
         },
-        "taxi": {
-            "book": {
-                "booked": [],
-                "departure": "",
-                "destination": ""
-            },
-            "semi": {
-                "leaveAt": "",
-                "arriveBy": ""
-            }
+        "semi": {
+            "department": ""
+        }
+    },
+    "taxi": {
+        "book": {
+            "booked": [],
+            "departure": "",
+            "destination": ""
         },
-        "train": {
-            "book": {
-                "booked": [],
-                "people": "",
-                "trainID": ""
-            },
-            "semi": {
-                "leaveAt": "",
-                "destination": "",
-                "day": "",
-                "arriveBy": "",
-                "departure": ""
-            }
+        "semi": {
+            "leaveAt": "",
+            "arriveBy": ""
+        }
+    },
+    "train": {
+        "book": {
+            "booked": [],
+            "people": "",
+            "trainID": ""
+        },
+        "semi": {
+            "leaveAt": "",
+            "destination": "",
+            "day": "",
+            "arriveBy": "",
+            "departure": ""
         }
     }
+}
 
 
 def init_state():
@@ -108,13 +108,16 @@ def init_state():
              'history': []}
     return state
 
+
 def str_similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
+
 
 def _log(info):
     with open('fuzzy_recognition.log', 'a+') as f:
         f.write('{}\n'.format(info))
     f.close()
+
 
 def minDistance(word1, word2):
     """The minimum edit distance between word 1 and 2."""
@@ -134,9 +137,10 @@ def minDistance(word1, word2):
                 value = last
             else:
                 value = 1 + min(last, tmp[j], tmp[j + 1])
-            last = tmp[j+1]
-            tmp[j+1] = value
+            last = tmp[j + 1]
+            tmp[j + 1] = value
     return value
+
 
 def normalize_value(value_set, domain, slot, value):
     """
@@ -176,6 +180,7 @@ def normalize_value(value_set, domain, slot, value):
     _log('Failed: domain {} slot {} value {}, raw value returned.'.format(domain, slot, value))
     return value
 
+
 def _transform_value(value):
     cand_list = []
     # a 's -> a's
@@ -194,6 +199,7 @@ def _transform_value(value):
         cand_list.append('the ' + value)
     return cand_list
 
+
 def _match_or_contain(value, value_list):
     """match value by exact match or containing"""
     if value in value_list:
@@ -208,6 +214,7 @@ def _match_or_contain(value, value_list):
             return v
     return None
 
+
 def special_match(domain, slot, value):
     """special slot fuzzy matching"""
     matched_result = None
@@ -221,6 +228,7 @@ def special_match(domain, slot, value):
         matched_result = _match_duration(value)
     return matched_result
 
+
 def _match_time(value):
     """Return the time (leaveby, arriveat) in value, None if no time in value."""
     mat = re.search(r"(\d{1,2}:\d{1,2})", value)
@@ -228,12 +236,14 @@ def _match_time(value):
         return mat.groups()[0]
     return None
 
+
 def _match_trainid(value):
     """Return the trainID in value, None if no trainID."""
     mat = re.search(r"TR(\d{4})", value)
     if mat is not None and len(mat.groups()) > 0:
         return mat.groups()[0]
     return None
+
 
 def _match_pound_price(value):
     """Return the price with pounds in value, None if no trainID."""
@@ -249,12 +259,14 @@ def _match_pound_price(value):
         return 'free'
     return None
 
+
 def _match_duration(value):
     """Return the durations (by minute) in value, None if no trainID."""
     mat = re.search(r"(\d{1,2} minutes)", value)
     if mat is not None and len(mat.groups()) > 0:
         return mat.groups()[0]
     return None
+
 
 if __name__ == "__main__":
     # value_set = json.load(open('../../../data/multiwoz/db/db_values.json'))

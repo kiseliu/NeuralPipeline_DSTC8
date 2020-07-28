@@ -28,6 +28,7 @@ class OneNetDatasetReader(DatasetReader):
     Parameters
     ----------
     """
+
     def __init__(self,
                  token_delimiter: str = None,
                  token_indexers: Dict[str, TokenIndexer] = None,
@@ -71,7 +72,7 @@ class OneNetDatasetReader(DatasetReader):
                                 intent = new_intent
                             elif intent != new_intent:
                                 continue
-                            tags.append("B-"+span[1])
+                            tags.append("B-" + span[1])
                             break
                         if i > span[3] and i <= span[4]:
                             new_domain, new_intent = span[0].split("-", 1)
@@ -79,7 +80,7 @@ class OneNetDatasetReader(DatasetReader):
                                 continue
                             if intent != new_intent:
                                 continue
-                            tags.append("I-"+span[1])
+                            tags.append("I-" + span[1])
                             break
                     else:
                         tags.append("O")
@@ -97,7 +98,7 @@ class OneNetDatasetReader(DatasetReader):
                 for dacts in turn["span_info"]:
                     if dacts[0] not in dialog_act:
                         dialog_act[dacts[0]] = []
-                    dialog_act[dacts[0]].append([dacts[1], " ".join(tokens[dacts[3]: dacts[4]+1])])
+                    dialog_act[dacts[0]].append([dacts[1], " ".join(tokens[dacts[3]: dacts[4] + 1])])
 
                 for dacts in turn["dialog_act"]:
                     for dact in turn["dialog_act"][dacts]:
@@ -111,9 +112,8 @@ class OneNetDatasetReader(DatasetReader):
 
                 yield self.text_to_instance(tokens, tags, domain, intent, dialog_act)
 
-
     def text_to_instance(self, tokens: List[Token], tags: List[str] = None, domain: str = None,
-        intent: str = None, dialog_act: Dict[str, Any] = None) -> Instance:  # type: ignore
+                         intent: str = None, dialog_act: Dict[str, Any] = None) -> Instance:  # type: ignore
         """
         We take `pre-tokenized` input here, because we don't have a tokenizer in this class.
         """
@@ -129,7 +129,7 @@ class OneNetDatasetReader(DatasetReader):
             fields["intent"] = LabelField(intent, label_namespace="intent_labels")
         if dialog_act is not None:
             fields["metadata"] = MetadataField({"words": [x.text for x in tokens],
-            'dialog_act': dialog_act})
+                                                'dialog_act': dialog_act})
         else:
             fields["metadata"] = MetadataField({"words": [x.text for x in tokens], 'dialog_act': {}})
         return Instance(fields)

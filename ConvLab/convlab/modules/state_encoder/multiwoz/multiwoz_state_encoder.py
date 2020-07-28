@@ -46,7 +46,7 @@ class MultiWozStateEncoder(object):
             for slot in REF_SYS_DA[domain]:
                 for act_type in ['Inform', 'Request', 'Booking']:
                     domain_act = domain + '-' + act_type
-                    if domain_act in user_act and slot in [sv[0] for sv in user_act[domain_act]]: 
+                    if domain_act in user_act and slot in [sv[0] for sv in user_act[domain_act]]:
                         user_act_vector.append(1)
                         # print(domain, act_type, slot)
                     else:
@@ -98,7 +98,8 @@ class MultiWozStateEncoder(object):
                 slot_enc = [0, 0, 0]  # not mentioned, dontcare, filled
                 if belief_state[domain]['semi'][slot] in ['', 'not mentioned']:
                     slot_enc[0] = 1
-                elif belief_state[domain]['semi'][slot] == 'dont care' or belief_state[domain]['semi'][slot] == 'dontcare' or belief_state[domain]['semi'][slot] == "don't care":
+                elif belief_state[domain]['semi'][slot] == 'dont care' or belief_state[domain]['semi'][
+                    slot] == 'dontcare' or belief_state[domain]['semi'][slot] == "don't care":
                     slot_enc[1] = 1
                     domain_active = True
                 elif belief_state[domain]['semi'][slot]:
@@ -134,22 +135,22 @@ class MultiWozStateEncoder(object):
 
         train_vec = np.array([1, 0])
         if "book" in belief_state['train']:
-            if "booked" in  belief_state['train']['book']:
+            if "booked" in belief_state['train']['book']:
                 if belief_state['train']['book']["booked"]:
                     if "reference" in belief_state['train']['book']["booked"][0]:
                         train_vec = np.array([0, 1])
 
-        return np.concatenate((rest_vec, hotel_vec, train_vec)) 
+        return np.concatenate((rest_vec, hotel_vec, train_vec))
 
     def get_db_state(self, belief_state):
         domains = ['restaurant', 'hotel', 'attraction', 'train']
         db_vector = np.zeros(6 * len(domains))
-        num_entities = {} 
+        num_entities = {}
         for domain in domains:
             entities = query(domain, belief_state[domain]['semi'].items())
             db_vector = self.one_hot(len(entities), domain, domains, db_vector)
 
-        return db_vector 
+        return db_vector
 
     def one_hot(self, num, domain, domains, vector):
         """Return number of available entities for particular domain."""
@@ -157,7 +158,7 @@ class MultiWozStateEncoder(object):
         if domain != 'train':
             idx = domains.index(domain)
             if num == 0:
-                vector[idx * 6: idx * 6 + 6] = np.array([1, 0, 0, 0, 0,0])
+                vector[idx * 6: idx * 6 + 6] = np.array([1, 0, 0, 0, 0, 0])
             elif num == 1:
                 vector[idx * 6: idx * 6 + 6] = np.array([0, 1, 0, 0, 0, 0])
             elif num == 2:
@@ -184,5 +185,3 @@ class MultiWozStateEncoder(object):
                 vector[idx * 6: idx * 6 + 6] = np.array([0, 0, 0, 0, 0, 1])
 
         return vector
-
-

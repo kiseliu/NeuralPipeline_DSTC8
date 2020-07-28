@@ -15,18 +15,18 @@ if __name__ == '__main__':
     data_key = ['val', 'test', 'train']
     data = {}
     for key in data_key:
-        data[key] = read_zipped_json(os.path.join(data_dir,key+'.json.zip'), key+'.json')
+        data[key] = read_zipped_json(os.path.join(data_dir, key + '.json.zip'), key + '.json')
         print('load {}, size {}'.format(key, len(data[key])))
 
     db_dir = '../../../../../data/multiwoz/db'
     db = {
-        'attraction': json.load(open(os.path.join(db_dir,'attraction_db.json'))),
-        'hotel': json.load(open(os.path.join(db_dir,'hotel_db.json'))),
-        'restaurant': json.load(open(os.path.join(db_dir,'restaurant_db.json'))),
-        'police': json.load(open(os.path.join(db_dir,'police_db.json'))),
-        'hospital': json.load(open(os.path.join(db_dir,'hospital_db.json'))),
-        'taxi': json.load(open(os.path.join(db_dir,'taxi_db.json'))),
-        'train': json.load(open(os.path.join(db_dir,'train_db.json')))
+        'attraction': json.load(open(os.path.join(db_dir, 'attraction_db.json'))),
+        'hotel': json.load(open(os.path.join(db_dir, 'hotel_db.json'))),
+        'restaurant': json.load(open(os.path.join(db_dir, 'restaurant_db.json'))),
+        'police': json.load(open(os.path.join(db_dir, 'police_db.json'))),
+        'hospital': json.load(open(os.path.join(db_dir, 'hospital_db.json'))),
+        'taxi': json.load(open(os.path.join(db_dir, 'taxi_db.json'))),
+        'train': json.load(open(os.path.join(db_dir, 'train_db.json')))
     }
     domain2slot2value = {}
     for domain in db.keys():
@@ -128,12 +128,12 @@ if __name__ == '__main__':
                 log_turns.append(log_turn)
             label_json['turns'] = label_turns
             log_json['turns'] = log_turns
-            f_dir = os.path.join(d_dir,no)
+            f_dir = os.path.join(d_dir, no)
             if not os.path.exists(f_dir):
                 os.makedirs(f_dir)
 
-            json.dump(label_json, open(os.path.join(f_dir,'label.json'), 'w'), indent=4)
-            json.dump(log_json, open(os.path.join(f_dir,'log.json'), 'w'), indent=4)
+            json.dump(label_json, open(os.path.join(f_dir, 'label.json'), 'w'), indent=4)
+            json.dump(log_json, open(os.path.join(f_dir, 'log.json'), 'w'), indent=4)
 
     all_tuples = []
     slots_enumerated = ["Area", "Type", "Price", "Day", "Internet", "none", "Parking"]

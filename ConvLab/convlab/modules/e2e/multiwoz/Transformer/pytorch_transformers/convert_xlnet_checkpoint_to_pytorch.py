@@ -23,10 +23,10 @@ import argparse
 import torch
 
 from pytorch_transformers.modeling_xlnet import (CONFIG_NAME, WEIGHTS_NAME,
-                                                    XLNetConfig,
-                                                    XLNetLMHeadModel, XLNetForQuestionAnswering,
-                                                    XLNetForSequenceClassification,
-                                                    load_tf_weights_in_xlnet)
+                                                 XLNetConfig,
+                                                 XLNetLMHeadModel, XLNetForQuestionAnswering,
+                                                 XLNetForSequenceClassification,
+                                                 load_tf_weights_in_xlnet)
 
 GLUE_TASKS_NUM_LABELS = {
     "cola": 2,
@@ -41,9 +41,12 @@ GLUE_TASKS_NUM_LABELS = {
 }
 
 import logging
+
 logging.basicConfig(level=logging.INFO)
 
-def convert_xlnet_checkpoint_to_pytorch(tf_checkpoint_path, bert_config_file, pytorch_dump_folder_path, finetuning_task=None):
+
+def convert_xlnet_checkpoint_to_pytorch(tf_checkpoint_path, bert_config_file, pytorch_dump_folder_path,
+                                        finetuning_task=None):
     # Initialise PyTorch model
     config = XLNetConfig.from_json_file(bert_config_file)
 
@@ -76,25 +79,25 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     ## Required parameters
     parser.add_argument("--tf_checkpoint_path",
-                        default = None,
-                        type = str,
-                        required = True,
-                        help = "Path the TensorFlow checkpoint path.")
+                        default=None,
+                        type=str,
+                        required=True,
+                        help="Path the TensorFlow checkpoint path.")
     parser.add_argument("--xlnet_config_file",
-                        default = None,
-                        type = str,
-                        required = True,
-                        help = "The config json file corresponding to the pre-trained XLNet model. \n"
-                               "This specifies the model architecture.")
+                        default=None,
+                        type=str,
+                        required=True,
+                        help="The config json file corresponding to the pre-trained XLNet model. \n"
+                             "This specifies the model architecture.")
     parser.add_argument("--pytorch_dump_folder_path",
-                        default = None,
-                        type = str,
-                        required = True,
-                        help = "Path to the folder to store the PyTorch model or dataset/vocab.")
+                        default=None,
+                        type=str,
+                        required=True,
+                        help="Path to the folder to store the PyTorch model or dataset/vocab.")
     parser.add_argument("--finetuning_task",
-                        default = None,
-                        type = str,
-                        help = "Name of a task on which the XLNet TensorFloaw model was fine-tuned")
+                        default=None,
+                        type=str,
+                        help="Name of a task on which the XLNet TensorFloaw model was fine-tuned")
     args = parser.parse_args()
     print(args)
 

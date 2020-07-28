@@ -3,7 +3,6 @@ import os
 # import simplejson as json
 import json
 
-
 digitpat = re.compile('\d+')
 timepat = re.compile("\d{1,2}[:]\d{1,2}")
 pricepat = re.compile("\d{1,3}[.]\d{1,2}")
@@ -14,6 +13,7 @@ replacements = []
 for line in fin.readlines():
     tok_from, tok_to = line.replace('\n', '').split('\t')
     replacements.append((' ' + tok_from + ' ', ' ' + tok_to + ' '))
+
 
 # FORMAT
 # domain_value
@@ -136,7 +136,8 @@ def prepareSlotValuesIndependent():
     # read databases
     for domain in domains:
         try:
-            fin = file(os.path.join(CUR_PATH.replace('latent_dialog/normalizer', ''), 'data/norm-multi-woz/' + domain + '_db.json'))
+            fin = file(os.path.join(CUR_PATH.replace('latent_dialog/normalizer', ''),
+                                    'data/norm-multi-woz/' + domain + '_db.json'))
             db_json = json.load(fin)
             fin.close()
 
@@ -211,7 +212,8 @@ def prepareSlotValuesIndependent():
             dic.append((normalize('Parkside Police Station'), '[' + domain + '_' + 'name' + ']'))
 
     # add at the end places from trains
-    fin = open(os.path.join(CUR_PATH.replace('latent_dialog/normalizer', ''), 'data/norm-multi-woz/' + 'train' + '_db.json'))
+    fin = open(
+        os.path.join(CUR_PATH.replace('latent_dialog/normalizer', ''), 'data/norm-multi-woz/' + 'train' + '_db.json'))
     db_json = json.load(fin)
     fin.close()
 

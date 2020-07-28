@@ -1,7 +1,6 @@
 from setuptools import setup, find_packages
 from os import path
 
-
 rootwd = path.abspath(path.dirname(__file__))
 
 with open(path.join(rootwd, 'README.md'), encoding='utf-8') as f:

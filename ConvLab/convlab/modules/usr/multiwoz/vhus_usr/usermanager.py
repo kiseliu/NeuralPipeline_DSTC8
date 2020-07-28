@@ -102,13 +102,12 @@ UsrDa2Goal = {
 }
 
 
-
 class UserDataManager(object):
 
     def __init__(self, data_dir, data_file):
         self.data_dir = data_dir
         self.data_file = data_file
-        
+
         self.__org_goals = None
         self.__org_usr_dass = None
         self.__org_sys_dass = None
@@ -131,10 +130,10 @@ class UserDataManager(object):
         self.sos = '<SOS>'
         self.eos = '<EOS>'
         self.special_words = [self.pad, self.unk, self.sos, self.eos]
-        
+
         self.voc_goal, self.voc_usr, self.voc_sys = self.vocab_loader()
 
-    @ staticmethod
+    @staticmethod
     def usrgoal2seq(goal: dict):
         def add(lt: list, domain_goal: dict, domain: str, intent: str):
             map = domain_goal.get(intent, {})
@@ -312,7 +311,7 @@ class UserDataManager(object):
                         ret[cur_act].append([slot_da, value])
                     else:
                         pass
-                        #assert False, slot_da
+                        # assert False, slot_da
                 else:
                     pass
                     # assert False, '%s - %s' % (domain, slot_da)
@@ -331,7 +330,6 @@ class UserDataManager(object):
                 for idx in range(len(da[act])):
                     da[act][idx][0] = ref_slot_data2stand.get(domain.lower(), {}).get(da[act][idx][0], da[act][idx][0])
         return eval(str(da).lower())
-
 
     def org_data_loader(self):
         if self.__org_goals is None or self.__org_usr_dass is None or self.__org_sys_dass is None:
@@ -360,8 +358,10 @@ class UserDataManager(object):
                     sys_dass.append(sys_das)
 
             self.__org_goals = [UserDataManager.usrgoal2seq(goal) for goal in goals]
-            self.__org_usr_dass = [[UserDataManager.usrda2seq(usr_da, goal) for usr_da in usr_das] for (usr_das, goal) in zip(usr_dass, goals)]
-            self.__org_sys_dass = [[UserDataManager.sysda2seq(sys_da, goal) for sys_da in sys_das] for (sys_das, goal) in zip(sys_dass, goals)]
+            self.__org_usr_dass = [[UserDataManager.usrda2seq(usr_da, goal) for usr_da in usr_das] for (usr_das, goal)
+                                   in zip(usr_dass, goals)]
+            self.__org_sys_dass = [[UserDataManager.sysda2seq(sys_da, goal) for sys_da in sys_das] for (sys_das, goal)
+                                   in zip(sys_dass, goals)]
 
         return self.__org_goals, self.__org_usr_dass, self.__org_sys_dass
 
@@ -398,7 +398,7 @@ class UserDataManager(object):
                             counter[word] += 1
                 word_list = self.special_words + [x for x in counter.keys()]
                 self.__voc_sys = {x: i for i, x in enumerate(word_list)}
-                
+
                 with open(vocab_path, 'wb') as f:
                     pickle.dump((self.__voc_goal, self.__voc_usr, self.__voc_sys), f)
                 print('voc build ok')
@@ -467,19 +467,24 @@ class UserDataManager(object):
         idx_val = random.sample(idx_train, int(len(goals_seg) * val_size))
         idx_train = list(set(idx_train) - set(idx_val))
         idx_train = random.sample(idx_train, len(idx_train))
-        return dr(np.array(goals_seg)[idx_train]), dr(np.array(usr_dass_seg)[idx_train]), dr(np.array(sys_dass_seg)[idx_train]), \
-               dr(np.array(goals_seg)[idx_test]), dr(np.array(usr_dass_seg)[idx_test]), dr(np.array(sys_dass_seg)[idx_test]), \
-               dr(np.array(goals_seg)[idx_val]), dr(np.array(usr_dass_seg)[idx_val]), dr(np.array(sys_dass_seg)[idx_val])
+        return dr(np.array(goals_seg)[idx_train]), dr(np.array(usr_dass_seg)[idx_train]), dr(
+            np.array(sys_dass_seg)[idx_train]), \
+               dr(np.array(goals_seg)[idx_test]), dr(np.array(usr_dass_seg)[idx_test]), dr(
+            np.array(sys_dass_seg)[idx_test]), \
+               dr(np.array(goals_seg)[idx_val]), dr(np.array(usr_dass_seg)[idx_val]), dr(
+            np.array(sys_dass_seg)[idx_val])
 
     def get_goal_id(self, goal):
         return [self.voc_goal.get(word, self.voc_goal[self.unk]) for word in goal]
-    
+
     def get_sysda_id(self, sys_das):
         return [[self.voc_sys.get(word, self.voc_sys[self.unk]) for word in sys_da] for sys_da in sys_das]
-    
+
     def get_usrda_id(self, usr_das):
-        return [[self.voc_usr[self.sos]] + [self.voc_usr.get(word, self.voc_usr[self.unk]) for word in usr_da] + [self.voc_usr[self.eos]]
-                 for usr_da in usr_das]
+        return [[self.voc_usr[self.sos]] + [self.voc_usr.get(word, self.voc_usr[self.unk]) for word in usr_da] + [
+            self.voc_usr[self.eos]]
+                for usr_da in usr_das]
+
 
 def batch_iter(x, y, z, batch_size=64):
     data_len = len(x)

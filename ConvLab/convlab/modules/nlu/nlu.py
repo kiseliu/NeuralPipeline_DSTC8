@@ -4,6 +4,7 @@
 """
 """
 
+
 class NLU:
     """Base class for NLU model."""
 

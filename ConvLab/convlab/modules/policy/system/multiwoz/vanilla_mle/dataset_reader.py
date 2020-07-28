@@ -27,6 +27,7 @@ class MlePolicyDatasetReader(DatasetReader):
     Parameters
     ----------
     """
+
     def __init__(self,
                  num_actions: int,
                  lazy: bool = False) -> None:

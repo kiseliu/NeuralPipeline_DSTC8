@@ -36,7 +36,7 @@ class OfflineRlAgent(object):
 
     def run(self, batch, evaluator, max_words=None, temp=0.1):
         self.logprobs = []
-        self.dlg_history =[]
+        self.dlg_history = []
         batch_size = len(batch['keys'])
         logprobs, outs = self.model.forward_rl(batch, max_words, temp)
         if batch_size == 1:
@@ -86,7 +86,7 @@ class OfflineRlAgent(object):
 class OfflineLatentRlAgent(OfflineRlAgent):
     def run(self, batch, evaluator, max_words=None, temp=0.1):
         self.logprobs = []
-        self.dlg_history =[]
+        self.dlg_history = []
         batch_size = len(batch['keys'])
         logprobs, outs, logprob_z, sample_z = self.model.forward_rl(batch, max_words, temp)
         if batch_size == 1:

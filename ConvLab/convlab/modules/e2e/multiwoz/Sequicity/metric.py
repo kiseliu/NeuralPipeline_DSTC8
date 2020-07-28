@@ -23,17 +23,19 @@ order_to_number = {
     'six': 6, 'seven': 7, 'eight': 8, 'nin': 9, 'ten': 10, 'eleven': 11, 'twelve': 12
 }
 
-def similar(a,b):
-    return a == b or a in b or b in a or a.split()[0] == b.split()[0] or a.split()[-1] == b.split()[-1]
-    #return a == b or b.endswith(a) or a.endswith(b)    
 
-def setsub(a,b):
+def similar(a, b):
+    return a == b or a in b or b in a or a.split()[0] == b.split()[0] or a.split()[-1] == b.split()[-1]
+    # return a == b or b.endswith(a) or a.endswith(b)
+
+
+def setsub(a, b):
     junks_a = []
-    useless_constraint = ['temperature','week','est ','quick','reminder','near']
+    useless_constraint = ['temperature', 'week', 'est ', 'quick', 'reminder', 'near']
     for i in a:
         flg = False
         for j in b:
-            if similar(i,j):
+            if similar(i, j):
                 flg = True
         if not flg:
             junks_a.append(i)
@@ -46,9 +48,11 @@ def setsub(a,b):
             return False
     return True
 
-def setsim(a,b):
-    a,b = set(a),set(b)
-    return setsub(a,b) and setsub(b,a)
+
+def setsim(a, b):
+    a, b = set(a), set(b)
+    return setsub(a, b) and setsub(b, a)
+
 
 class BLEUScorer(object):
     ## BLEU score calculator via GentScorer interface
@@ -114,28 +118,29 @@ def report(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         res = func(*args, **kwargs)
-        args[0].metric_dict[func.__name__ + ' '+str(args[2])] = res
+        args[0].metric_dict[func.__name__ + ' ' + str(args[2])] = res
         return res
+
     return wrapper
 
 
 class GenericEvaluator:
     def __init__(self, result_path):
-        self.file = open(result_path,'r')
+        self.file = open(result_path, 'r')
         self.meta = []
         self.metric_dict = {}
         self.entity_dict = {}
         filename = result_path.split('/')[-1]
-        dump_dir = './sheets/' + filename.replace('.csv','.report.txt')
-        self.dump_file = open(dump_dir,'w')
+        dump_dir = './sheets/' + filename.replace('.csv', '.report.txt')
+        self.dump_file = open(dump_dir, 'w')
 
     def _print_dict(self, dic):
-        for k, v in sorted(dic.items(),key=lambda x:x[0]):
-            print(k+'\t'+str(v))
+        for k, v in sorted(dic.items(), key=lambda x: x[0]):
+            print(k + '\t' + str(v))
 
     @report
-    def bleu_metric(self,data,type='bleu'):
-        gen, truth = [],[]
+    def bleu_metric(self, data, type='bleu'):
+        gen, truth = [], []
         for row in data:
             gen.append(row['generated_response'])
             truth.append(row['response'])
@@ -161,11 +166,11 @@ class GenericEvaluator:
         z = z.split()
         if 'EOS_Z1' not in z:
             return set(z).difference(['name', 'address', 'postcode', 'phone', 'area', 'pricerange', 'restaurant',
-                                           'restaurants', 'style', 'price', 'food', 'EOS_M'])
+                                      'restaurants', 'style', 'price', 'food', 'EOS_M'])
         else:
             idx = z.index('EOS_Z1')
             return set(z[:idx]).difference(['name', 'address', 'postcode', 'phone', 'area', 'pricerange', 'restaurant',
-                                           'restaurants', 'style', 'price', 'food', 'EOS_M'])
+                                            'restaurants', 'style', 'price', 'food', 'EOS_M'])
 
     def _extract_request(self, z):
         z = z.split()
@@ -173,9 +178,9 @@ class GenericEvaluator:
             return set()
         else:
             idx = z.index('EOS_Z1')
-            return set(z[idx+1:])
+            return set(z[idx + 1:])
 
-    def pack_dial(self,data):
+    def pack_dial(self, data):
         dials = {}
         for turn in data:
             dial_id = int(turn['dial_id'])
@@ -187,11 +192,10 @@ class GenericEvaluator:
     def dump(self):
         self.dump_file.writelines(self.meta)
         self.dump_file.write('START_REPORT_SECTION\n')
-        for k,v in self.metric_dict.items():
-            self.dump_file.write('{}\t{}\n'.format(k,v))
+        for k, v in self.metric_dict.items():
+            self.dump_file.write('{}\t{}\n'.format(k, v))
 
-
-    def clean(self,s):
+    def clean(self, s):
         s = s.replace('<go> ', '').replace(' SLOT', '_SLOT')
         s = '<GO> ' + s + ' </s>'
         for item in self.entity_dict:
@@ -216,7 +220,7 @@ class CamRestEvaluator(GenericEvaluator):
         for i, row in enumerate(data):
             data[i]['response'] = self.clean(data[i]['response'])
             data[i]['generated_response'] = self.clean(data[i]['generated_response'])
-        bleu_score = self.bleu_metric(data,'bleu')
+        bleu_score = self.bleu_metric(data, 'bleu')
         success_f1 = self.success_f1_metric(data, 'success')
         match = self.match_metric(data, 'match', raw_data=raw_data)
         self._print_dict(self.metric_dict)
@@ -238,19 +242,19 @@ class CamRestEvaluator(GenericEvaluator):
         if 'moderately' in s:
             s.discard('moderately')
             s.add('moderate')
-        #print(self.entities) 
-        #return s
+        # print(self.entities)
+        # return s
         return s.intersection(self.entities)
-        #return set(z).difference(['name', 'address', 'postcode', 'phone', 'area', 'pricerange'])
+        # return set(z).difference(['name', 'address', 'postcode', 'phone', 'area', 'pricerange'])
 
     def _extract_request(self, z):
         z = z.split()
-        return set(z).intersection(['address', 'postcode', 'phone', 'area', 'pricerange','food'])
+        return set(z).intersection(['address', 'postcode', 'phone', 'area', 'pricerange', 'food'])
 
     @report
-    def match_metric(self, data, sub='match',raw_data=None):
+    def match_metric(self, data, sub='match', raw_data=None):
         dials = self.pack_dial(data)
-        match,total = 0,1e-8
+        match, total = 0, 1e-8
         success = 0
         # find out the last placeholder and see whether that is correct
         # if no such placeholder, see the final turn, because it can be a yes/no question or scheduling dialogue
@@ -260,7 +264,7 @@ class CamRestEvaluator(GenericEvaluator):
             gen_bspan, truth_cons, gen_cons = None, None, set()
             truth_turn_num = -1
             truth_response_req = []
-            for turn_num,turn in enumerate(dial):
+            for turn_num, turn in enumerate(dial):
                 if 'SLOT' in turn['generated_response']:
                     gen_bspan = turn['generated_bspan']
                     gen_cons = self._extract_constraint(gen_bspan)
@@ -291,9 +295,9 @@ class CamRestEvaluator(GenericEvaluator):
     @report
     def success_f1_metric(self, data, sub='successf1'):
         dials = self.pack_dial(data)
-        tp,fp,fn = 0,0,0
+        tp, fp, fn = 0, 0, 0
         for dial_id in dials:
-            truth_req, gen_req = set(),set()
+            truth_req, gen_req = set(), set()
             dial = dials[dial_id]
             for turn_num, turn in enumerate(dial):
                 gen_response_token = turn['generated_response'].split()
@@ -319,6 +323,7 @@ class CamRestEvaluator(GenericEvaluator):
         f1 = 2 * precision * recall / (precision + recall + 1e-8)
         return f1, precision, recall
 
+
 class KvretEvaluator(GenericEvaluator):
     def __init__(self, result_path):
         super().__init__(result_path)
@@ -333,21 +338,21 @@ class KvretEvaluator(GenericEvaluator):
     def run_metrics(self):
         data = self.read_result_data()
         for i, row in enumerate(data):
-            data[i]['response'] = self.clean_by_intent(data[i]['response'],int(data[i]['dial_id']))
-            data[i]['generated_response'] = self.clean_by_intent(data[i]['generated_response'],int(data[i]['dial_id']))
+            data[i]['response'] = self.clean_by_intent(data[i]['response'], int(data[i]['dial_id']))
+            data[i]['generated_response'] = self.clean_by_intent(data[i]['generated_response'], int(data[i]['dial_id']))
         match_rate = self.match_rate_metric(data, 'match')
-        bleu_score = self.bleu_metric(data,'bleu')
-        success_f1 = self.success_f1_metric(data,'success_f1')
+        bleu_score = self.bleu_metric(data, 'bleu')
+        success_f1 = self.success_f1_metric(data, 'success_f1')
         self._print_dict(self.metric_dict)
 
-    def clean_by_intent(self,s,i):
+    def clean_by_intent(self, s, i):
         s = s.replace('<go> ', '').replace(' SLOT', '_SLOT')
         s = '<GO> ' + s + ' </s>'
         intent = self.raw_data[i]['scenario']['task']['intent']
         slot = {
-            'weather':['weather_attribute','location','weekly_time'],
-            'navigate':['poi','poi_type','distance','traffic','address'],
-            'schedule':['event','date','time','party','room','agenda']
+            'weather': ['weather_attribute', 'location', 'weekly_time'],
+            'navigate': ['poi', 'poi_type', 'distance', 'traffic', 'address'],
+            'schedule': ['event', 'date', 'time', 'party', 'room', 'agenda']
         }
 
         for item in self.entity_dict:
@@ -355,7 +360,6 @@ class KvretEvaluator(GenericEvaluator):
                 # s = s.replace(item, 'VALUE_{}'.format(self.entity_dict[item]))
                 s = clean_replace(s, item, '{}_SLOT'.format(self.entity_dict[item]))
         return s
-
 
     def _extract_constraint(self, z):
         z = z.split()
@@ -367,15 +371,16 @@ class KvretEvaluator(GenericEvaluator):
         reqs = ['address', 'traffic', 'poi', 'poi_type', 'distance', 'weather', 'temperature', 'weather_attribute',
                 'date', 'time', 'location', 'event', 'agenda', 'party', 'room', 'weekly_time', 'forecast']
         informable = {
-            'weather': ['date','location','weather_attribute'],
-            'navigate': ['poi_type','distance'],
+            'weather': ['date', 'location', 'weather_attribute'],
+            'navigate': ['poi_type', 'distance'],
             'schedule': ['event', 'date', 'time', 'agenda', 'party', 'room']
         }
         infs = []
         for v in informable.values():
             infs.extend(v)
-        junk = ['good','great','quickest','shortest','route','week','fastest','nearest','next','closest','way','mile',
-               'activity','restaurant','appointment' ]
+        junk = ['good', 'great', 'quickest', 'shortest', 'route', 'week', 'fastest', 'nearest', 'next', 'closest',
+                'way', 'mile',
+                'activity', 'restaurant', 'appointment']
         s = s.difference(junk).difference(en_sws).difference(reqs)
         res = set()
         for item in s:
@@ -406,7 +411,7 @@ class KvretEvaluator(GenericEvaluator):
                 for entity in entity_data[k]:
                     entity = self._lemmatize(self._tokenize(entity))
                     entity_dict[entity] = k
-                    if k in ['event','poi_type']:
+                    if k in ['event', 'poi_type']:
                         entity_dict[entity.split()[0]] = k
             elif isinstance(entity_data[k][0], dict):
                 for entity_entry in entity_data[k]:
@@ -419,17 +424,17 @@ class KvretEvaluator(GenericEvaluator):
         self.entity_dict = entity_dict
 
     @report
-    def match_rate_metric(self, data, sub='match',bspans='./data/kvret/test.bspan.pkl'):
+    def match_rate_metric(self, data, sub='match', bspans='./data/kvret/test.bspan.pkl'):
         dials = self.pack_dial(data)
-        match,total = 0,1e-8
-        #bspan_data = pickle.load(open(bspans,'rb'))
+        match, total = 0, 1e-8
+        # bspan_data = pickle.load(open(bspans,'rb'))
         # find out the last placeholder and see whether that is correct
         # if no such placeholder, see the final turn, because it can be a yes/no question or scheduling conversation
         for dial_id in dials:
             dial = dials[dial_id]
             gen_bspan, truth_cons, gen_cons = None, None, set()
             truth_turn_num = -1
-            for turn_num,turn in enumerate(dial):
+            for turn_num, turn in enumerate(dial):
                 if 'SLOT' in turn['generated_response']:
                     gen_bspan = turn['generated_bspan']
                     gen_cons = self._extract_constraint(gen_bspan)
@@ -447,7 +452,7 @@ class KvretEvaluator(GenericEvaluator):
             if truth_cons:
                 if self.constraint_same(gen_cons, truth_cons):
                     match += 1
-                    #print(gen_cons, truth_cons, '+')
+                    # print(gen_cons, truth_cons, '+')
                 else:
                     print(gen_cons, truth_cons, '-')
                 total += 1
@@ -459,16 +464,16 @@ class KvretEvaluator(GenericEvaluator):
 
     def _lemmatize(self, sent):
         words = [wn.lemmatize(_) for _ in sent.split()]
-        #for idx,w in enumerate(words):
+        # for idx,w in enumerate(words):
         #    if w !=
         return ' '.join(words)
 
     @report
     def success_f1_metric(self, data, sub='successf1'):
         dials = self.pack_dial(data)
-        tp,fp,fn = 0,0,0
+        tp, fp, fn = 0, 0, 0
         for dial_id in dials:
-            truth_req, gen_req = set(),set()
+            truth_req, gen_req = set(), set()
             dial = dials[dial_id]
             for turn_num, turn in enumerate(dial):
                 gen_response_token = turn['generated_response'].split()
@@ -493,6 +498,7 @@ class KvretEvaluator(GenericEvaluator):
         f1 = 2 * precision * recall / (precision + recall + 1e-8)
         return f1
 
+
 class MultiWozEvaluator(GenericEvaluator):
     def __init__(self, result_path):
         super().__init__(result_path)
@@ -509,7 +515,7 @@ class MultiWozEvaluator(GenericEvaluator):
         for i, row in enumerate(data):
             data[i]['response'] = self.clean(data[i]['response'])
             data[i]['generated_response'] = self.clean(data[i]['generated_response'])
-        bleu_score = self.bleu_metric(data,'bleu')
+        bleu_score = self.bleu_metric(data, 'bleu')
         success_f1 = self.success_f1_metric(data, 'success')
         match = self.match_metric(data, 'match', raw_data=raw_data)
         self._print_dict(self.metric_dict)
@@ -532,19 +538,19 @@ class MultiWozEvaluator(GenericEvaluator):
         if 'moderately' in s:
             s.discard('moderately')
             s.add('moderate')
-        #print(self.entities) 
-        #return s
+        # print(self.entities)
+        # return s
         return s.intersection(self.entities)
-        #return set(z).difference(['name', 'address', 'postcode', 'phone', 'area', 'pricerange'])
+        # return set(z).difference(['name', 'address', 'postcode', 'phone', 'area', 'pricerange'])
 
     def _extract_request(self, z):
         z = z.split()
-        return set(z).intersection(['address', 'postcode', 'phone', 'area', 'pricerange','food'])
+        return set(z).intersection(['address', 'postcode', 'phone', 'area', 'pricerange', 'food'])
 
     @report
-    def match_metric(self, data, sub='match',raw_data=None):
+    def match_metric(self, data, sub='match', raw_data=None):
         dials = self.pack_dial(data)
-        match,total = 0,1e-8
+        match, total = 0, 1e-8
         # find out the last placeholder and see whether that is correct
         # if no such placeholder, see the final turn, because it can be a yes/no question or scheduling dialogue
         for dial_id in dials:
@@ -553,7 +559,7 @@ class MultiWozEvaluator(GenericEvaluator):
             gen_bspan, truth_cons, gen_cons = None, None, set()
             truth_turn_num = -1
             truth_response_req = []
-            for turn_num,turn in enumerate(dial):
+            for turn_num, turn in enumerate(dial):
                 if 'SLOT' in turn['generated_response']:
                     gen_bspan = turn['generated_bspan']
                     gen_cons = self._extract_constraint(gen_bspan)
@@ -577,7 +583,7 @@ class MultiWozEvaluator(GenericEvaluator):
                     match += 1
                 else:
                     pass
-#                    print(gen_cons, truth_cons)
+                #                    print(gen_cons, truth_cons)
                 total += 1
 
         return match / total
@@ -585,9 +591,9 @@ class MultiWozEvaluator(GenericEvaluator):
     @report
     def success_f1_metric(self, data, sub='successf1'):
         dials = self.pack_dial(data)
-        tp,fp,fn = 0,0,0
+        tp, fp, fn = 0, 0, 0
         for dial_id in dials:
-            truth_req, gen_req = set(),set()
+            truth_req, gen_req = set(), set()
             dial = dials[dial_id]
             for turn_num, turn in enumerate(dial):
                 gen_response_token = turn['generated_response'].split()
@@ -613,6 +619,7 @@ class MultiWozEvaluator(GenericEvaluator):
         f1 = 2 * precision * recall / (precision + recall + 1e-8)
         return f1, precision, recall
 
+
 def metric_handler():
     parser = argparse.ArgumentParser()
     parser.add_argument('-file')
@@ -628,6 +635,7 @@ def metric_handler():
     ev = ev_class(args.file)
     ev.run_metrics()
     ev.dump()
+
 
 if __name__ == '__main__':
     metric_handler()

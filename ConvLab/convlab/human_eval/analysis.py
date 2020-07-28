@@ -62,13 +62,14 @@ def main():
                 u_scores.append(result['understanding_score'])
                 a_scores.append(result['appropriateness_score'])
     print('Total number of dialogs:', num_s_dials + num_f_dials)
-    print('Success rate:', num_s_dials/(num_s_dials + num_f_dials))
+    print('Success rate:', num_s_dials / (num_s_dials + num_f_dials))
     for level in num_s_per_level:
-        s_rate = 0 if num_s_per_level[level] + num_f_per_level[level] == 0 else\
-             num_s_per_level[level] / (num_s_per_level[level] + num_f_per_level[level])
+        s_rate = 0 if num_s_per_level[level] + num_f_per_level[level] == 0 else \
+            num_s_per_level[level] / (num_s_per_level[level] + num_f_per_level[level])
         print('Level {} success rate: {}'.format(level, s_rate))
     print('Avg dialog length: {}(+-{})'.format(np.mean(dial_lens), np.std(dial_lens)))
-    print('Avg turn length: {}(+-{})'.format(np.mean(usr_turn_lens+sys_turn_lens), np.std(usr_turn_lens+sys_turn_lens)))
+    print('Avg turn length: {}(+-{})'.format(np.mean(usr_turn_lens + sys_turn_lens),
+                                             np.std(usr_turn_lens + sys_turn_lens)))
     print('Avg user turn length: {}(+-{})'.format(np.mean(usr_turn_lens), np.std(usr_turn_lens)))
     print('Avg system turn length: {}(+-{})'.format(np.mean(sys_turn_lens), np.std(sys_turn_lens)))
     print('Avg number of domains: {}(+-{})'.format(np.mean(num_domains), np.std(num_domains)))

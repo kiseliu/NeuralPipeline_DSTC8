@@ -19,17 +19,19 @@ for dial_name in dataset:
     else:
         train_dials[dial_name] = dataset[dial_name]
 
-print('train/val/test size: {}/{}/{}'.format(len(train_dials),len(val_dials),len(test_dials)))
-open('trainListFile','w').writelines([x+'\n' for x in train_dials.keys()])
-open('valListFile','w').writelines([x+'\n' for x in val_dials.keys()])
-open('testListFile','w').writelines([x+'\n' for x in test_dials.keys()])
+print('train/val/test size: {}/{}/{}'.format(len(train_dials), len(val_dials), len(test_dials)))
+open('trainListFile', 'w').writelines([x + '\n' for x in train_dials.keys()])
+open('valListFile', 'w').writelines([x + '\n' for x in val_dials.keys()])
+open('testListFile', 'w').writelines([x + '\n' for x in test_dials.keys()])
 
 json.dump(train_dials, open('train.json', 'w'), indent=2)
 with zipfile.ZipFile('train.json.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
     zf.write('train.json')
+
 json.dump(val_dials, open('val.json', 'w'), indent=2)
 with zipfile.ZipFile('val.json.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
     zf.write('val.json')
+
 json.dump(test_dials, open('test.json', 'w'), indent=2)
 with zipfile.ZipFile('test.json.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
     zf.write('test.json')
@@ -37,4 +39,3 @@ with zipfile.ZipFile('test.json.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
 os.remove('train.json')
 os.remove('val.json')
 os.remove('test.json')
-

@@ -11,7 +11,7 @@ class Evaluator(object):
             goal: dict[domain] dict['info'/'book'/'reqt'] dict/dict/list[slot]
         """
         raise NotImplementedError
-    
+
     def add_sys_da(self, da_turn):
         """
         add sys_da into array
@@ -19,7 +19,7 @@ class Evaluator(object):
             da_turn: dict[domain-intent] list[slot, value]
         """
         raise NotImplementedError
-                
+
     def add_usr_da(self, da_turn):
         """
         add usr_da into array
@@ -39,7 +39,7 @@ class Evaluator(object):
         judge if all the requested information is answered
         """
         raise NotImplementedError
-        
+
     def task_success(self, ref2goal=True):
         """
         judge if all the domains are successfully completed

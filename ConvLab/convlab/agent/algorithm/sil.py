@@ -143,11 +143,13 @@ class SIL(ActorCritic):
                     pdparams, _v_preds = self.calc_pdparam_v(batch)
                     sil_policy_loss, sil_val_loss = self.calc_sil_policy_val_loss(batch, pdparams)
                     sil_loss = sil_policy_loss + sil_val_loss
-                    self.net.train_step(sil_loss, self.optim, self.lr_scheduler, clock=clock, global_net=self.global_net)
+                    self.net.train_step(sil_loss, self.optim, self.lr_scheduler, clock=clock,
+                                        global_net=self.global_net)
                     total_sil_loss += sil_loss
             sil_loss = total_sil_loss / self.training_iter
             loss = super_loss + sil_loss
-            logger.debug(f'Trained {self.name} at epi: {clock.epi}, frame: {clock.frame}, t: {clock.t}, total_reward so far: {self.body.total_reward}, loss: {loss:g}')
+            logger.debug(
+                f'Trained {self.name} at epi: {clock.epi}, frame: {clock.frame}, t: {clock.t}, total_reward so far: {self.body.total_reward}, loss: {loss:g}')
             return loss.item()
         else:
             return np.nan

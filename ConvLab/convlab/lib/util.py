@@ -450,7 +450,8 @@ def read_as_plain(data_path, **kwargs):
 def run_cmd(cmd):
     '''Run shell command'''
     print(f'+ {cmd}')
-    proc = subprocess.Popen(cmd, cwd=ROOT_DIR, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
+    proc = subprocess.Popen(cmd, cwd=ROOT_DIR, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            close_fds=True)
     return proc
 
 

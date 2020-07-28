@@ -43,6 +43,7 @@ class MDBTTracker(Tracker):
     """
     A multi-domain belief tracker, adopted from https://github.com/osmanio2/multi-domain-belief-tracking.
     """
+
     def __init__(self, data_dir='data/mdbt'):
         Tracker.__init__(self)
         # data profile
@@ -114,7 +115,7 @@ class MDBTTracker(Tracker):
         actual_history[-1].append(user_act)
         actual_history = self.normalize_history(actual_history)
         if len(actual_history) == 0:
-            actual_history = [['', user_act if len(user_act)>0 else 'fake user act']]
+            actual_history = [['', user_act if len(user_act) > 0 else 'fake user act']]
         fake_dialogue = {}
         turn_no = 0
         for _sys, _user in actual_history:
@@ -129,7 +130,7 @@ class MDBTTracker(Tracker):
             turn_no += 1
         context, actual_context = process_history([fake_dialogue], self.word_vectors, self.ontology)
         batch_user, batch_sys, batch_labels, batch_domain_labels, batch_user_uttr_len, batch_sys_uttr_len, \
-                batch_no_turns = generate_batch(context, 0, 1, len(self.ontology))  # old feature
+        batch_no_turns = generate_batch(context, 0, 1, len(self.ontology))  # old feature
 
         # run model
         [pred, y_pred] = self.sess.run(
@@ -159,7 +160,7 @@ class MDBTTracker(Tracker):
             if slot not in ['name', 'book']:
                 if domain not in new_belief_state:
                     raise Exception('Error: domain <{}> not in belief state'.format(domain))
-                slot = REF_SYS_DA[domain.capitalize( )].get(slot, slot)
+                slot = REF_SYS_DA[domain.capitalize()].get(slot, slot)
                 assert 'semi' in new_belief_state[domain]
                 assert 'book' in new_belief_state[domain]
                 if 'book' in slot:
@@ -174,8 +175,9 @@ class MDBTTracker(Tracker):
                     new_belief_state[domain]['book'][slot.lower()] = value
                 else:
                     with open('mdbt_unknown_slot.log', 'a+') as f:
-                        f.write('unknown slot name <{}> with value <{}> of domain <{}>\nitem: {}\n\n'.format(slot, value,
-                                domain, item))
+                        f.write(
+                            'unknown slot name <{}> with value <{}> of domain <{}>\nitem: {}\n\n'.format(slot, value,
+                                                                                                         domain, item))
         new_request_state = copy.deepcopy(prev_state['request_state'])
         # update request_state
         user_request_slot = self.detect_requestable_slots(user_act)
@@ -226,7 +228,7 @@ class MDBTTracker(Tracker):
             Model saved to
         """
         num_hid, bidir, net_type, n2p, batch_size, model_url, graph_url, dev = \
-                None, True, None, None, None, None, None, None
+            None, True, None, None, None, None, None, None
         global train_batch_size, MODEL_URL, GRAPH_URL, device, TRAIN_MODEL_URL, TRAIN_GRAPH_URL
 
         if batch_size:
@@ -428,7 +430,7 @@ class MDBTTracker(Tracker):
             slot_acc += np.mean(np.asarray(np.equal(pred, true_pred), dtype="float32"), axis=0)
 
             dialgs, va1, ja = track_dialogue(self.actual_dialogues[batch_id * train_batch_size:
-                                             batch_id * train_batch_size + batch_size],
+                                                                   batch_id * train_batch_size + batch_size],
                                              self.ontology, pred, y_pred)
             processed_dialogues += dialgs
             joint_accuracy += ja
@@ -486,6 +488,7 @@ def evaluate_model():
     saver = tf.train.Saver()
     mdbt.restore_model(mdbt.sess, saver)
     mdbt.test(mdbt.sess)
+
 
 if __name__ == '__main__':
     evaluate_model()

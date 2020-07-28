@@ -37,7 +37,7 @@ class ExternalPolicy(Algorithm):
             'action_policy',
         ])
         self.action_policy = getattr(policy_util, self.action_policy)
-        self.policy = None 
+        self.policy = None
         if 'word_policy' in self.algorithm_spec:
             params = deepcopy(ps.get(self.algorithm_spec, 'word_policy'))
             PolicyClass = getattr(word_policy, params.pop('name'))
@@ -47,7 +47,7 @@ class ExternalPolicy(Algorithm):
         else:
             params = deepcopy(ps.get(self.algorithm_spec, 'policy'))
             PolicyClass = getattr(policy, params.pop('name'))
-        self.policy = PolicyClass(**params) 
+        self.policy = PolicyClass(**params)
 
     def reset(self):
         self.policy.init_session()

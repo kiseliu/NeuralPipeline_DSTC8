@@ -52,7 +52,8 @@ def check_comp_spec(comp_spec, comp_spec_format):
             assert comp_spec_v in v_set, f'Component spec value {ps.pick(comp_spec, spec_k)} needs to be one of {util.to_json(v_set)}'
         else:
             v_type = spec_format_v
-            assert isinstance(comp_spec_v, v_type), f'Component spec {ps.pick(comp_spec, spec_k)} needs to be of type: {v_type}'
+            assert isinstance(comp_spec_v,
+                              v_type), f'Component spec {ps.pick(comp_spec, spec_k)} needs to be of type: {v_type}'
             if isinstance(v_type, tuple) and int in v_type and isinstance(comp_spec_v, float):
                 # cast if it can be int
                 comp_spec[spec_k] = int(comp_spec_v)
@@ -76,14 +77,16 @@ def check_compatibility(spec):
     '''Check compatibility among spec setups'''
     # TODO expand to be more comprehensive
     if spec['meta'].get('distributed') == 'synced':
-        assert ps.get(spec, 'agent.0.net.gpu') == False, f'Distributed mode "synced" works with CPU only. Set gpu: false.'
+        assert ps.get(spec,
+                      'agent.0.net.gpu') == False, f'Distributed mode "synced" works with CPU only. Set gpu: false.'
 
 
 def check(spec):
     '''Check a single spec for validity'''
     try:
         spec_name = spec.get('name')
-        assert set(spec.keys()) >= set(SPEC_FORMAT.keys()), f'Spec needs to follow spec.SPEC_FORMAT. Given \n {spec_name}: {util.to_json(spec)}'
+        assert set(spec.keys()) >= set(
+            SPEC_FORMAT.keys()), f'Spec needs to follow spec.SPEC_FORMAT. Given \n {spec_name}: {util.to_json(spec)}'
         for agent_spec in spec['agent']:
             check_comp_spec(agent_spec, SPEC_FORMAT['agent'][0])
         for env_spec in spec['env']:
@@ -192,7 +195,7 @@ def override_dev_spec(spec):
     return spec
 
 
-#def override_enjoy_spec(spec):
+# def override_enjoy_spec(spec):
 #    spec['meta']['max_session'] = 1
 #    return spec
 

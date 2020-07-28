@@ -8,7 +8,6 @@ from convlab.modules.word_policy.multiwoz.larl.latent_dialog.enc2dec.base_module
 from convlab.modules.word_policy.multiwoz.larl.latent_dialog.utils import cast_type, LONG, FLOAT
 from convlab.modules.word_policy.multiwoz.larl.latent_dialog.corpora import DECODING_MASKED_TOKENS, EOS
 
-
 TEACH_FORCE = 'teacher_forcing'
 TEACH_GEN = 'teacher_gen'
 GEN = 'gen'
@@ -22,7 +21,7 @@ class Attention(nn.Module):
         self.ctx_cell_size = ctx_cell_size
         self.attn_mode = attn_mode
         if project:
-            self.linear_out = nn.Linear(dec_cell_size+ctx_cell_size, dec_cell_size)
+            self.linear_out = nn.Linear(dec_cell_size + ctx_cell_size, dec_cell_size)
         else:
             self.linear_out = None
 
@@ -40,32 +39,34 @@ class Attention(nn.Module):
         max_ctx_len = context.size(1)
 
         if self.attn_mode == 'dot':
-            attn = th.bmm(output, context.transpose(1, 2)) # (batch_size, output_seq_len, max_ctx_len)
+            attn = th.bmm(output, context.transpose(1, 2))  # (batch_size, output_seq_len, max_ctx_len)
         elif self.attn_mode == 'general':
-            mapped_output = self.dec_w(output) # (batch_size, output_seq_len, ctx_cell_size)
-            attn = th.bmm(mapped_output, context.transpose(1, 2)) # (batch_size, output_seq_len, max_ctx_len)
+            mapped_output = self.dec_w(output)  # (batch_size, output_seq_len, ctx_cell_size)
+            attn = th.bmm(mapped_output, context.transpose(1, 2))  # (batch_size, output_seq_len, max_ctx_len)
         elif self.attn_mode == 'cat':
-            mapped_output = self.dec_w(output) # (batch_size, output_seq_len, dec_cell_size)
-            mapped_attn = self.attn_w(context) # (batch_size, max_ctx_len, dec_cell_size)
-            tiled_output = mapped_output.unsqueeze(2).repeat(1, 1, max_ctx_len, 1) # (batch_size, output_seq_len, max_ctx_len, dec_cell_size)
-            tiled_attn = mapped_attn.unsqueeze(1) # (batch_size, 1, max_ctx_len, dec_cell_size)
-            fc1 = F.tanh(tiled_output+tiled_attn) # (batch_size, output_seq_len, max_ctx_len, dec_cell_size)
-            attn = self.query_w(fc1).squeeze(-1) # (batch_size, otuput_seq_len, max_ctx_len)
+            mapped_output = self.dec_w(output)  # (batch_size, output_seq_len, dec_cell_size)
+            mapped_attn = self.attn_w(context)  # (batch_size, max_ctx_len, dec_cell_size)
+            tiled_output = mapped_output.unsqueeze(2).repeat(1, 1, max_ctx_len,
+                                                             1)  # (batch_size, output_seq_len, max_ctx_len, dec_cell_size)
+            tiled_attn = mapped_attn.unsqueeze(1)  # (batch_size, 1, max_ctx_len, dec_cell_size)
+            fc1 = F.tanh(tiled_output + tiled_attn)  # (batch_size, output_seq_len, max_ctx_len, dec_cell_size)
+            attn = self.query_w(fc1).squeeze(-1)  # (batch_size, otuput_seq_len, max_ctx_len)
         else:
             raise ValueError('Unknown attention mode')
 
         # TODO mask
         # if self.mask is not None:
 
-        attn = F.softmax(attn.view(-1, max_ctx_len), dim=1).view(batch_size, -1, max_ctx_len) # (batch_size, output_seq_len, max_ctx_len)
-        mix = th.bmm(attn, context) # (batch_size, output_seq_len, ctx_cell_size)
-        combined = th.cat((mix, output), dim=2) # (batch_size, output_seq_len, dec_cell_size+ctx_cell_size)
+        attn = F.softmax(attn.view(-1, max_ctx_len), dim=1).view(batch_size, -1,
+                                                                 max_ctx_len)  # (batch_size, output_seq_len, max_ctx_len)
+        mix = th.bmm(attn, context)  # (batch_size, output_seq_len, ctx_cell_size)
+        combined = th.cat((mix, output), dim=2)  # (batch_size, output_seq_len, dec_cell_size+ctx_cell_size)
         if self.linear_out is None:
             return combined, attn
         else:
             output = F.tanh(
-                self.linear_out(combined.view(-1, self.dec_cell_size+self.ctx_cell_size))).view(
-                batch_size, -1, self.dec_cell_size) # (batch_size, output_seq_len, dec_cell_size)
+                self.linear_out(combined.view(-1, self.dec_cell_size + self.ctx_cell_size))).view(
+                batch_size, -1, self.dec_cell_size)  # (batch_size, output_seq_len, dec_cell_size)
             return output, attn
 
 
@@ -74,12 +75,12 @@ class DecoderRNN(BaseRNN):
                  bidirectional, vocab_size, use_attn, ctx_cell_size, attn_mode, sys_id, eos_id, use_gpu,
                  max_dec_len, embedding=None):
 
-        super(DecoderRNN, self).__init__(input_dropout_p=input_dropout_p, 
-                                         rnn_cell=rnn_cell, 
-                                         input_size=input_size, 
-                                         hidden_size=hidden_size, 
-                                         num_layers=num_layers, 
-                                         output_dropout_p=output_dropout_p, 
+        super(DecoderRNN, self).__init__(input_dropout_p=input_dropout_p,
+                                         rnn_cell=rnn_cell,
+                                         input_size=input_size,
+                                         hidden_size=hidden_size,
+                                         num_layers=num_layers,
+                                         output_dropout_p=output_dropout_p,
                                          bidirectional=bidirectional)
 
         # TODO embedding is None or not
@@ -94,11 +95,11 @@ class DecoderRNN(BaseRNN):
 
         self.use_attn = use_attn
         if self.use_attn:
-            self.attention = Attention(dec_cell_size=hidden_size, 
-                                       ctx_cell_size=ctx_cell_size, 
-                                       attn_mode=attn_mode, 
+            self.attention = Attention(dec_cell_size=hidden_size,
+                                       ctx_cell_size=ctx_cell_size,
+                                       attn_mode=attn_mode,
                                        project=True)
-        
+
         self.dec_cell_size = hidden_size
         self.output_size = vocab_size
         self.project = nn.Linear(self.dec_cell_size, self.output_size)
@@ -132,7 +133,7 @@ class DecoderRNN(BaseRNN):
             with th.no_grad():
                 bos_var = Variable(th.LongTensor([self.sys_id]))
             bos_var = cast_type(bos_var, LONG, self.use_gpu)
-            decoder_input = bos_var.expand(batch_size*beam_size, 1) # (batch_size, 1)
+            decoder_input = bos_var.expand(batch_size * beam_size, 1)  # (batch_size, 1)
 
         if mode == GEN and gen_type == 'beam':
             # TODO if beam search, repeat the initial states of the RNN
@@ -140,19 +141,20 @@ class DecoderRNN(BaseRNN):
         else:
             decoder_hidden_state = dec_init_state
 
-        prob_outputs = [] # list of logprob | max_dec_len*(batch_size, 1, vocab_size)
-        symbol_outputs = [] # list of word ids | max_dec_len*(batch_size, 1)
+        prob_outputs = []  # list of logprob | max_dec_len*(batch_size, 1, vocab_size)
+        symbol_outputs = []  # list of word ids | max_dec_len*(batch_size, 1)
+
         # back_pointers = []
         # lengths = blabla...
 
         def decode(step, cum_sum, step_output, step_attn):
             prob_outputs.append(step_output)
-            step_output_slice = step_output.squeeze(1) # (batch_size, vocab_size)
+            step_output_slice = step_output.squeeze(1)  # (batch_size, vocab_size)
             if self.use_attn:
                 ret_dict[DecoderRNN.KEY_ATTN_SCORE].append(step_attn)
 
             if gen_type == 'greedy':
-                _, symbols = step_output_slice.topk(1) # (batch_size, 1)
+                _, symbols = step_output_slice.topk(1)  # (batch_size, 1)
             elif gen_type == 'sample':
                 # TODO FIXME
                 # symbols = self.gumbel_max(step_output_slice)
@@ -168,7 +170,10 @@ class DecoderRNN(BaseRNN):
             return cum_sum, symbols
 
         if mode == TEACH_FORCE:
-            prob_outputs, decoder_hidden_state, attn = self.forward_step(input_var=decoder_input, hidden_state=decoder_hidden_state, encoder_outputs=attn_context, goal_hid=goal_hid)
+            prob_outputs, decoder_hidden_state, attn = self.forward_step(input_var=decoder_input,
+                                                                         hidden_state=decoder_hidden_state,
+                                                                         encoder_outputs=attn_context,
+                                                                         goal_hid=goal_hid)
         else:
             # do free running here
             cum_sum = None
@@ -182,11 +187,12 @@ class DecoderRNN(BaseRNN):
                 #   decoder_output: (batch_size, 1, vocab_size)
                 #   decoder_hidden_state: tuple: (h, c)
                 #   step_attn: (batch_size, 1, max_ctx_len)
-                decoder_output, decoder_hidden_state, step_attn = self.forward_step(decoder_input, decoder_hidden_state, attn_context, goal_hid=goal_hid)
+                decoder_output, decoder_hidden_state, step_attn = self.forward_step(decoder_input, decoder_hidden_state,
+                                                                                    attn_context, goal_hid=goal_hid)
                 cum_sum, symbols = decode(step, cum_sum, decoder_output, step_attn)
                 decoder_input = symbols
 
-            prob_outputs = th.cat(prob_outputs, dim=1) # (batch_size, max_dec_len, vocab_size)
+            prob_outputs = th.cat(prob_outputs, dim=1)  # (batch_size, max_dec_len, vocab_size)
 
             # back tracking to recover the 1-best in beam search
             # if gen_type == 'beam':
@@ -205,13 +211,13 @@ class DecoderRNN(BaseRNN):
         # encoder_outputs: (batch_size, max_ctx_len, ctx_cell_size)
         # goal_hid: (batch_size, goal_nhid)
         batch_size, output_seq_len = input_var.size()
-        embedded = self.embedding(input_var) # (batch_size, output_seq_len, embedding_dim)
+        embedded = self.embedding(input_var)  # (batch_size, output_seq_len, embedding_dim)
 
         # add goals
         if goal_hid is not None:
-            goal_hid = goal_hid.view(goal_hid.size(0), 1, goal_hid.size(1)) # (batch_size, 1, goal_nhid)
-            goal_rep = goal_hid.repeat(1, output_seq_len, 1) # (batch_size, output_seq_len, goal_nhid)
-            embedded = th.cat([embedded, goal_rep], dim=2) # (batch_size, output_seq_len, embedding_dim+goal_nhid)
+            goal_hid = goal_hid.view(goal_hid.size(0), 1, goal_hid.size(1))  # (batch_size, 1, goal_nhid)
+            goal_rep = goal_hid.repeat(1, output_seq_len, 1)  # (batch_size, output_seq_len, goal_nhid)
+            embedded = th.cat([embedded, goal_rep], dim=2)  # (batch_size, output_seq_len, embedding_dim+goal_nhid)
 
         embedded = self.input_dropout(embedded)
 
@@ -229,8 +235,10 @@ class DecoderRNN(BaseRNN):
             # attn: (batch_size, output_seq_len, max_ctx_len)
             output, attn = self.attention(output, encoder_outputs)
 
-        logits = self.project(output.contiguous().view(-1, self.dec_cell_size)) # (batch_size*output_seq_len, vocab_size)
-        prediction = self.log_softmax(logits, dim=logits.dim()-1).view(batch_size, output_seq_len, -1) # (batch_size, output_seq_len, vocab_size)
+        logits = self.project(
+            output.contiguous().view(-1, self.dec_cell_size))  # (batch_size*output_seq_len, vocab_size)
+        prediction = self.log_softmax(logits, dim=logits.dim() - 1).view(batch_size, output_seq_len,
+                                                                         -1)  # (batch_size, output_seq_len, vocab_size)
         return prediction, hidden_s, attn
 
     # special for rl
@@ -240,12 +248,12 @@ class DecoderRNN(BaseRNN):
         # encoder_outputs: (1, max_dlg_len, dlg_cell_size)
         # goal_hid: (1, goal_nhid)
         batch_size, output_seq_len = input_var.size()
-        embedded = self.embedding(input_var) # (1, 1, embedding_dim)
+        embedded = self.embedding(input_var)  # (1, 1, embedding_dim)
 
         if goal_hid is not None:
-            goal_hid = goal_hid.view(goal_hid.size(0), 1, goal_hid.size(1)) # (1, 1, goal_nhid)
-            goal_rep = goal_hid.repeat(1, output_seq_len, 1) # (1, 1, goal_nhid)
-            embedded = th.cat([embedded, goal_rep], dim=2) # (1, 1, embedding_dim+goal_nhid)
+            goal_hid = goal_hid.view(goal_hid.size(0), 1, goal_hid.size(1))  # (1, 1, goal_nhid)
+            goal_rep = goal_hid.repeat(1, output_seq_len, 1)  # (1, 1, goal_nhid)
+            embedded = th.cat([embedded, goal_rep], dim=2)  # (1, 1, embedding_dim+goal_nhid)
 
         embedded = self.input_dropout(embedded)
 
@@ -263,8 +271,8 @@ class DecoderRNN(BaseRNN):
             # attn: (1, 1, max_dlg_len)
             output, attn = self.attention(output, encoder_outputs)
 
-        logits = self.project(output.view(-1, self.dec_cell_size)) # (1*1, vocab_size)
-        prediction = logits.view(batch_size, output_seq_len, -1) # (1, 1, vocab_size)
+        logits = self.project(output.view(-1, self.dec_cell_size))  # (1*1, vocab_size)
+        prediction = logits.view(batch_size, output_seq_len, -1)  # (1, 1, vocab_size)
         # prediction = self.log_softmax(logits, dim=logits.dim()-1).view(batch_size, output_seq_len, -1) # (batch_size, output_seq_len, vocab_size)
         return prediction, hidden_s
 
@@ -275,34 +283,36 @@ class DecoderRNN(BaseRNN):
         # hidden_state: tuple: (h, c)
         # encoder_outputs: max_dlg_len*(1, 1, dlg_cell_size)
         # goal_hid: (1, goal_nhid)
-        logprob_outputs = [] # list of logprob | max_dec_len*(1, )
-        symbol_outputs = [] # list of word ids | max_dec_len*(1, )
+        logprob_outputs = []  # list of logprob | max_dec_len*(1, )
+        symbol_outputs = []  # list of word ids | max_dec_len*(1, )
         decoder_input = input_var
         decoder_hidden_state = hidden_state
         if type(encoder_outputs) is list:
-            encoder_outputs = th.cat(encoder_outputs, 1) # (1, max_dlg_len, dlg_cell_size)
+            encoder_outputs = th.cat(encoder_outputs, 1)  # (1, max_dlg_len, dlg_cell_size)
         # print('encoder_outputs.size() = {}'.format(encoder_outputs.size()))
-        
+
         if mask:
-            special_token_mask = Variable(th.FloatTensor([-999. if token in decoding_masked_tokens else 0. for token in vocab]))
-            special_token_mask = cast_type(special_token_mask, FLOAT, self.use_gpu) # (vocab_size, )
+            special_token_mask = Variable(
+                th.FloatTensor([-999. if token in decoding_masked_tokens else 0. for token in vocab]))
+            special_token_mask = cast_type(special_token_mask, FLOAT, self.use_gpu)  # (vocab_size, )
 
         def _sample(dec_output, num_i):
             # dec_output: (1, 1, vocab_size), need to softmax and log_softmax
-            dec_output = dec_output.view(-1) # (vocab_size, )
+            dec_output = dec_output.view(-1)  # (vocab_size, )
             # TODO temperature
-            prob = F.softmax(dec_output/0.6, dim=0) # (vocab_size, )
-            logprob = F.log_softmax(dec_output, dim=0) # (vocab_size, )
-            symbol = prob.multinomial(num_samples=1).detach() # (1, )
+            prob = F.softmax(dec_output / 0.6, dim=0)  # (vocab_size, )
+            logprob = F.log_softmax(dec_output, dim=0)  # (vocab_size, )
+            symbol = prob.multinomial(num_samples=1).detach()  # (1, )
             # _, symbol = prob.topk(1) # (1, )
-            _, tmp_symbol = prob.topk(1) # (1, )
+            _, tmp_symbol = prob.topk(1)  # (1, )
             # print('multinomial symbol = {}, prob = {}'.format(symbol, prob[symbol.item()]))
             # print('topk symbol = {}, prob = {}'.format(tmp_symbol, prob[tmp_symbol.item()]))
-            logprob = logprob.gather(0, symbol) # (1, )
+            logprob = logprob.gather(0, symbol)  # (1, )
             return logprob, symbol
 
         for i in range(max_words):
-            decoder_output, decoder_hidden_state = self._step(decoder_input, decoder_hidden_state, encoder_outputs, goal_hid)
+            decoder_output, decoder_hidden_state = self._step(decoder_input, decoder_hidden_state, encoder_outputs,
+                                                              goal_hid)
             # disable special tokens from being generated in a normal turn
             if mask:
                 decoder_output += special_token_mask.expand(1, 1, -1)
@@ -321,38 +331,41 @@ class DecoderRNN(BaseRNN):
         return logprob_list, symbol_list
 
     # For MultiWoz RL
-    def forward_rl(self, batch_size, dec_init_state, attn_context, vocab, max_words, goal_hid=None, mask=True, temp=0.1):
+    def forward_rl(self, batch_size, dec_init_state, attn_context, vocab, max_words, goal_hid=None, mask=True,
+                   temp=0.1):
         # prepare the BOS inputs
         with th.no_grad():
             bos_var = Variable(th.LongTensor([self.sys_id]))
         bos_var = cast_type(bos_var, LONG, self.use_gpu)
-        decoder_input = bos_var.expand(batch_size, 1) # (1, 1)
-        decoder_hidden_state = dec_init_state # tuple: (h, c)
-        encoder_outputs = attn_context # (1, ctx_len, ctx_cell_size)
+        decoder_input = bos_var.expand(batch_size, 1)  # (1, 1)
+        decoder_hidden_state = dec_init_state  # tuple: (h, c)
+        encoder_outputs = attn_context  # (1, ctx_len, ctx_cell_size)
 
-        logprob_outputs = [] # list of logprob | max_dec_len*(1, )
-        symbol_outputs = [] # list of word ids | max_dec_len*(1, )
+        logprob_outputs = []  # list of logprob | max_dec_len*(1, )
+        symbol_outputs = []  # list of word ids | max_dec_len*(1, )
 
         if mask:
-            special_token_mask = Variable(th.FloatTensor([-999. if token in DECODING_MASKED_TOKENS else 0. for token in vocab]))
-            special_token_mask = cast_type(special_token_mask, FLOAT, self.use_gpu) # (vocab_size, )
+            special_token_mask = Variable(
+                th.FloatTensor([-999. if token in DECODING_MASKED_TOKENS else 0. for token in vocab]))
+            special_token_mask = cast_type(special_token_mask, FLOAT, self.use_gpu)  # (vocab_size, )
 
         def _sample(dec_output, num_i):
             # dec_output: (1, 1, vocab_size), need to softmax and log_softmax
-            dec_output = dec_output.view(batch_size, -1) # (batch_size, vocab_size, )
-            prob = F.softmax(dec_output/temp, dim=1) # (batch_size, vocab_size, )
-            logprob = F.log_softmax(dec_output, dim=1) # (batch_size, vocab_size, )
-            symbol = prob.multinomial(num_samples=1).detach() # (batch_size, 1)
+            dec_output = dec_output.view(batch_size, -1)  # (batch_size, vocab_size, )
+            prob = F.softmax(dec_output / temp, dim=1)  # (batch_size, vocab_size, )
+            logprob = F.log_softmax(dec_output, dim=1)  # (batch_size, vocab_size, )
+            symbol = prob.multinomial(num_samples=1).detach()  # (batch_size, 1)
             # _, symbol = prob.topk(1) # (1, )
-            _, tmp_symbol = prob.topk(1) # (1, )
+            _, tmp_symbol = prob.topk(1)  # (1, )
             # print('multinomial symbol = {}, prob = {}'.format(symbol, prob[symbol.item()]))
             # print('topk symbol = {}, prob = {}'.format(tmp_symbol, prob[tmp_symbol.item()]))
-            logprob = logprob.gather(1, symbol) # (1, )
+            logprob = logprob.gather(1, symbol)  # (1, )
             return logprob, symbol
 
         stopped_samples = set()
         for i in range(max_words):
-            decoder_output, decoder_hidden_state = self._step(decoder_input, decoder_hidden_state, encoder_outputs, goal_hid)
+            decoder_output, decoder_hidden_state = self._step(decoder_input, decoder_hidden_state, encoder_outputs,
+                                                              goal_hid)
             # disable special tokens from being generated in a normal turn
             if mask:
                 decoder_output += special_token_mask.expand(1, 1, -1)

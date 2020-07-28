@@ -26,7 +26,7 @@ class BaseDataLoaders(object):
 
         self.batch_indexes = []
         for i in range(self.num_batch):
-            self.batch_indexes.append(self.indexes[i*self.batch_size: (i+1)*self.batch_size])
+            self.batch_indexes.append(self.indexes[i * self.batch_size: (i + 1) * self.batch_size])
 
         if shuffle and fix_batch:
             self._shuffle_batch_indexes()
@@ -47,7 +47,7 @@ class BaseDataLoaders(object):
 
     def pad_to(self, max_len, tokens, do_pad):
         if len(tokens) >= max_len:
-            return tokens[: max_len-1] + [tokens[-1]]
+            return tokens[: max_len - 1] + [tokens[-1]]
         elif do_pad:
             return tokens + [0] * (max_len - len(tokens))
         else:

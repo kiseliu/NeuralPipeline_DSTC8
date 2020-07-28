@@ -4,8 +4,10 @@ import os
 db_dir = "."
 files = [os.path.join(db_dir, item) for item in os.listdir(db_dir) if 'db.json' in item]
 
+
 def extract_domain_name(file):
     return file[2:].split('_db.json')[0]
+
 
 db_dic = {}
 for file in files:

@@ -28,7 +28,7 @@ class Model:
             'multiwoz': MultiWozReader
         }
         model_dict = {
-            'TSD':TSD
+            'TSD': TSD
         }
         evaluator_dict = {
             'camrest': CamRestEvaluator,
@@ -37,19 +37,19 @@ class Model:
         }
         self.reader = reader_dict[dataset]()
         self.m = model_dict[cfg.m](embed_size=cfg.embedding_size,
-                               hidden_size=cfg.hidden_size,
-                               vocab_size=cfg.vocab_size,
-                               layer_num=cfg.layer_num,
-                               dropout_rate=cfg.dropout_rate,
-                               z_length=cfg.z_length,
-                               max_ts=cfg.max_ts,
-                               beam_search=cfg.beam_search,
-                               beam_size=cfg.beam_size,
-                               eos_token_idx=self.reader.vocab.encode('EOS_M'),
-                               vocab=self.reader.vocab,
-                               teacher_force=cfg.teacher_force,
-                               degree_size=cfg.degree_size)
-        self.EV = evaluator_dict[dataset] # evaluator class
+                                   hidden_size=cfg.hidden_size,
+                                   vocab_size=cfg.vocab_size,
+                                   layer_num=cfg.layer_num,
+                                   dropout_rate=cfg.dropout_rate,
+                                   z_length=cfg.z_length,
+                                   max_ts=cfg.max_ts,
+                                   beam_search=cfg.beam_search,
+                                   beam_size=cfg.beam_size,
+                                   eos_token_idx=self.reader.vocab.encode('EOS_M'),
+                                   vocab=self.reader.vocab,
+                                   teacher_force=cfg.teacher_force,
+                                   degree_size=cfg.degree_size)
+        self.EV = evaluator_dict[dataset]  # evaluator class
         if cfg.cuda: self.m = self.m.cuda()
         self.base_epoch = -1
 
@@ -68,7 +68,7 @@ class Model:
                 u_len_py[i] = len(u_input_py[i])
                 for j, word in enumerate(prev_z_py[i]):
                     if word >= cfg.vocab_size:
-                        prev_z_py[i][j] = 2 #unk
+                        prev_z_py[i][j] = 2  # unk
         elif cfg.prev_z_method == 'separate' and prev_z_py is not None:
             for i in range(len(prev_z_py)):
                 eob = self.reader.vocab.encode('EOS_Z2')
@@ -77,7 +77,7 @@ class Model:
                     prev_z_py[i] = prev_z_py[i][:idx + 1]
                 for j, word in enumerate(prev_z_py[i]):
                     if word >= cfg.vocab_size:
-                        prev_z_py[i][j] = 2 #unk
+                        prev_z_py[i][j] = 2  # unk
             prev_z_input_np = pad_sequences(prev_z_py, cfg.max_ts, padding='post', truncating='pre').transpose((1, 0))
             prev_z_len = np.array([len(_) for _ in prev_z_py])
             prev_z_input = cuda_(Variable(torch.from_numpy(prev_z_input_np).long()))
@@ -101,7 +101,7 @@ class Model:
 
         kw_ret['z_input_np'] = z_input_np
 
-        return u_input, u_input_np, z_input, m_input, m_input_np,u_len, m_len,  \
+        return u_input, u_input_np, z_input, m_input, m_input_np, u_len, m_len, \
                degree_input, kw_ret
 
     def train(self):
@@ -117,7 +117,7 @@ class Model:
             sup_loss = 0
             sup_cnt = 0
             data_iterator = self.reader.mini_batch_iterator('train')
-            optim = Adam(lr=lr, params=filter(lambda x: x.requires_grad, self.m.parameters()),weight_decay=1e-5)
+            optim = Adam(lr=lr, params=filter(lambda x: x.requires_grad, self.m.parameters()), weight_decay=1e-5)
             for iter_num, dial_batch in enumerate(data_iterator):
                 turn_states = {}
                 prev_z = None
@@ -130,12 +130,12 @@ class Model:
                         = self._convert_batch(turn_batch, prev_z)
 
                     loss, pr_loss, m_loss, turn_states = self.m(u_input=u_input, z_input=z_input,
-                                                                        m_input=m_input,
-                                                                        degree_input=degree_input,
-                                                                        u_input_np=u_input_np,
-                                                                        m_input_np=m_input_np,
-                                                                        turn_states=turn_states,
-                                                                        u_len=u_len, m_len=m_len, mode='train', **kw_ret)
+                                                                m_input=m_input,
+                                                                degree_input=degree_input,
+                                                                u_input_np=u_input_np,
+                                                                m_input_np=m_input_np,
+                                                                turn_states=turn_states,
+                                                                u_len=u_len, m_len=m_len, mode='train', **kw_ret)
                     loss.backward(retain_graph=turn_num != len(dial_batch) - 1)
                     grad = torch.nn.utils.clip_grad_norm(self.m.parameters(), 5.0)
                     optim.step()
@@ -143,9 +143,9 @@ class Model:
                     sup_cnt += 1
                     logging.debug(
                         'loss:{} pr_loss:{} m_loss:{} grad:{}'.format(loss.item(),
-                                                                       pr_loss.item(),
-                                                                       m_loss.item(),
-                                                                       grad))
+                                                                      pr_loss.item(),
+                                                                      m_loss.item(),
+                                                                      grad))
 
                     prev_z = turn_batch['bspan']
 
@@ -156,7 +156,7 @@ class Model:
 
             valid_sup_loss, valid_unsup_loss = self.validate()
             logging.info('validation loss in epoch %d sup:%f unsup:%f' % (epoch, valid_sup_loss, valid_unsup_loss))
-            logging.info('time for epoch %d: %f' % (epoch, time.time()-sw))
+            logging.info('time for epoch %d: %f' % (epoch, time.time() - sw))
             valid_loss = valid_sup_loss + valid_unsup_loss
 
             if valid_loss <= prev_min_loss:
@@ -185,42 +185,42 @@ class Model:
                                                    m_input=m_input,
                                                    degree_input=degree_input, u_input_np=u_input_np,
                                                    m_input_np=m_input_np,
-                                                   m_len=m_len, turn_states=turn_states,**kw_ret)
+                                                   m_len=m_len, turn_states=turn_states, **kw_ret)
                 self.reader.wrap_result(turn_batch, m_idx, z_idx, prev_z=prev_z)
                 prev_z = z_idx
         ev = self.EV(result_path=cfg.result_path)
         res = ev.run_metrics()
         self.m.train()
         return res
-    
+
     def interact(self):
         def z2degree(gen_z):
             gen_bspan = self.reader.vocab.sentence_decode(gen_z, eos='EOS_Z2')
             constraint_request = gen_bspan.split()
             constraints = constraint_request[:constraint_request.index('EOS_Z1')] if 'EOS_Z1' \
-                in constraint_request else constraint_request
+                                                                                     in constraint_request else constraint_request
             for j, ent in enumerate(constraints):
                 constraints[j] = ent.replace('_', ' ')
             degree = self.reader.db_search(constraints)
             degree_input_list = self.reader._degree_vec_mapping(len(degree))
             degree_input = cuda_(Variable(torch.Tensor(degree_input_list).unsqueeze(0)))
             return degree, degree_input
-        
+
         def denormalize(uttr):
             uttr = uttr.replace(' -s', 's')
             uttr = uttr.replace(' -ly', 'ly')
             uttr = uttr.replace(' -er', 'er')
             return uttr
-            
+
         self.m.eval()
         print('Start interaction.')
-        kw_ret = dict({'func':z2degree})
+        kw_ret = dict({'func': z2degree})
         while True:
             usr = input('usr: ')
             if usr == 'END':
                 break
             if usr == 'RESET':
-                kw_ret = dict({'func':z2degree})
+                kw_ret = dict({'func': z2degree})
                 continue
             usr = word_tokenize(usr.lower())
             usr_words = usr + ['EOS_U']
@@ -256,7 +256,7 @@ class Model:
                     z_idx[0] = z_idx[0][:idx + 1]
                 for j, word in enumerate(z_idx[0]):
                     if word >= cfg.vocab_size:
-                        z_idx[0][j] = 2 #unk
+                        z_idx[0][j] = 2  # unk
                 prev_z_input_np = pad_sequences(z_idx, cfg.max_ts, padding='post', truncating='pre').transpose((1, 0))
                 prev_z_len = np.array([len(_) for _ in z_idx])
                 prev_z_input = cuda_(Variable(torch.from_numpy(prev_z_input_np).long()))
@@ -269,14 +269,14 @@ class Model:
             gen_bspan = self.reader.vocab.sentence_decode(gen_z, eos='EOS_Z2')
             constraint_request = gen_bspan.split()
             constraints = constraint_request[:constraint_request.index('EOS_Z1')] if 'EOS_Z1' \
-                in constraint_request else constraint_request
+                                                                                     in constraint_request else constraint_request
             for j, ent in enumerate(constraints):
                 constraints[j] = ent.replace('_', ' ')
             degree = self.reader.db_search(constraints)
             degree_input_list = self.reader._degree_vec_mapping(len(degree))
             degree_input = cuda_(Variable(torch.Tensor(degree_input_list).unsqueeze(0)))
             return degree, degree_input
-            
+
         self.m.eval()
 
         kw_ret['func'] = z2degree
@@ -293,9 +293,9 @@ class Model:
         u_input_np = np.array(usr_indices)[:, np.newaxis]
         u_input = cuda_(Variable(torch.from_numpy(u_input_np).long()))
         m_idx, z_idx, degree = self.m(mode='test', degree_input=None, z_input=None,
-                                        u_input=u_input, u_input_np=u_input_np, u_len=u_len,
-                                        m_input=None, m_input_np=None, m_len=None,
-                                        turn_states=None, **kw_ret)
+                                      u_input=u_input, u_input_np=u_input_np, u_len=u_len,
+                                      m_input=None, m_input_np=None, m_len=None,
+                                      turn_states=None, **kw_ret)
         venue = random.sample(degree, 1)[0] if degree else dict()
         l = [self.reader.vocab.decode(_) for _ in m_idx[0]]
         if 'EOS_M' in l:
@@ -319,7 +319,7 @@ class Model:
                 z_idx[0] = z_idx[0][:idx + 1]
             for j, word in enumerate(z_idx[0]):
                 if word >= cfg.vocab_size:
-                    z_idx[0][j] = 2 #unk
+                    z_idx[0][j] = 2  # unk
             prev_z_input_np = pad_sequences(z_idx, cfg.max_ts, padding='post', truncating='pre').transpose((1, 0))
             prev_z_len = np.array([len(_) for _ in z_idx])
             kw_ret['prev_z_len'] = prev_z_len.tolist()
@@ -344,11 +344,11 @@ class Model:
                     = self._convert_batch(turn_batch)
 
                 loss, pr_loss, m_loss, turn_states = self.m(u_input=u_input, z_input=z_input,
-                                                                    m_input=m_input,
-                                                                    turn_states=turn_states,
-                                                                    degree_input=degree_input,
-                                                                    u_input_np=u_input_np, m_input_np=m_input_np,
-                                                                    u_len=u_len, m_len=m_len, mode='train',**kw_ret)
+                                                            m_input=m_input,
+                                                            turn_states=turn_states,
+                                                            degree_input=degree_input,
+                                                            u_input_np=u_input_np, m_input_np=m_input_np,
+                                                            u_len=u_len, m_len=m_len, mode='train', **kw_ret)
                 sup_loss += loss.item()
                 sup_cnt += 1
                 logging.debug(
@@ -368,7 +368,7 @@ class Model:
             mode = 'rl'
             if epoch <= self.base_epoch:
                 continue
-            epoch_loss, cnt = 0,0
+            epoch_loss, cnt = 0, 0
             data_iterator = self.reader.mini_batch_iterator('train')
             optim = Adam(lr=lr, params=filter(lambda x: x.requires_grad, self.m.parameters()), weight_decay=1e-5)
             for iter_num, dial_batch in enumerate(data_iterator):
@@ -380,12 +380,12 @@ class Model:
                     m_len, degree_input, kw_ret \
                         = self._convert_batch(turn_batch, prev_z)
                     loss_rl = self.m(u_input=u_input, z_input=z_input,
-                                m_input=m_input,
-                                degree_input=degree_input,
-                                u_input_np=u_input_np,
-                                m_input_np=m_input_np,
-                                turn_states=turn_states,
-                                u_len=u_len, m_len=m_len, mode=mode, **kw_ret)
+                                     m_input=m_input,
+                                     degree_input=degree_input,
+                                     u_input_np=u_input_np,
+                                     m_input_np=m_input_np,
+                                     turn_states=turn_states,
+                                     u_len=u_len, m_len=m_len, mode=mode, **kw_ret)
 
                     if loss_rl is not None:
                         loss = loss_rl
@@ -394,7 +394,7 @@ class Model:
                         optim.step()
                         epoch_loss += loss.item()
                         cnt += 1
-                        logging.debug('{} loss {}, grad:{}'.format(mode,loss.item(),grad))
+                        logging.debug('{} loss {}, grad:{}'.format(mode, loss.item(), grad))
 
                     prev_z = turn_batch['bspan']
 
@@ -408,7 +408,7 @@ class Model:
             self.save_model(epoch)
 
             if valid_loss <= prev_min_loss:
-                #self.save_model(epoch)
+                # self.save_model(epoch)
                 prev_min_loss = valid_loss
             else:
                 early_stop_count -= 1
@@ -460,7 +460,6 @@ class Model:
 
 
 def main(arg_mode=None, arg_model=None):
-
     parser = argparse.ArgumentParser()
     parser.add_argument('-mode')
     parser.add_argument('-model')
@@ -516,6 +515,7 @@ def main(arg_mode=None, arg_model=None):
     elif args.mode == 'load':
         m.load_model()
         return m
+
 
 if __name__ == '__main__':
     main()

@@ -8,7 +8,7 @@ from convlab.modules.policy.system.multiwoz.rule_based_multiwoz_bot import REF_S
     generate_ref_num
 from convlab.modules.util.multiwoz.dbquery import query
 
-DEFAULT_VOCAB_FILE=os.path.join(os.path.dirname(os.path.dirname(
+DEFAULT_VOCAB_FILE = os.path.join(os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))),
     "data/multiwoz/da_slot_cnt.json")
 
@@ -26,7 +26,7 @@ class ActionVocab(object):
             {'general-greet': ['none']},
             {'general-bye': ['none']},
             {'general-reqmore': ['none']}
-        ] 
+        ]
         # add single slot actions
         for domain in REF_SYS_DA:
             for slot in REF_SYS_DA[domain]:
@@ -45,11 +45,11 @@ class ActionVocab(object):
                         domain_act, slots = act_string.split('[', 1)
                         domain, act_type = domain_act.split('-')
                         if act_type in ['NoOffer', 'OfferBook']:
-                            action_dict[domain_act] = ['none'] 
+                            action_dict[domain_act] = ['none']
                         elif act_type in ['Select']:
                             if slots.startswith('none'):
                                 raise SkipException
-                            action_dict[domain_act] = [slots.split(';')[0]] 
+                            action_dict[domain_act] = [slots.split(';')[0]]
                         else:
                             action_dict[domain_act] = sorted(slots.split(';'))
                     if action_dict not in self.vocab:
@@ -104,7 +104,7 @@ class MultiWozVocabActionDecoder(object):
                 if act == 'Taxi-Inform':
                     for info_slot in ['leaveAt', 'arriveBy']:
                         if info_slot in state['belief_state']['taxi']['semi'] and \
-                            state['belief_state']['taxi']['semi'][info_slot] != "":
+                                state['belief_state']['taxi']['semi'][info_slot] != "":
                             car = generate_car()
                             phone_num = generate_ref_num(11)
                             action[act] = []
@@ -116,13 +116,13 @@ class MultiWozVocabActionDecoder(object):
                 elif act in ['Train-Inform', 'Train-NoOffer', 'Train-OfferBook']:
                     for info_slot in ['departure', 'destination']:
                         if info_slot not in state['belief_state']['train']['semi'] or \
-                            state['belief_state']['train']['semi'][info_slot] == "":
+                                state['belief_state']['train']['semi'][info_slot] == "":
                             action[act] = [['none', 'none']]
                             break
                     else:
                         for info_slot in ['leaveAt', 'arriveBy']:
                             if info_slot in state['belief_state']['train']['semi'] and \
-                                state['belief_state']['train']['semi'][info_slot] != "":
+                                    state['belief_state']['train']['semi'][info_slot] != "":
                                 self.domain_fill(delex_action, state, action, act)
                                 break
                         else:
@@ -178,4 +178,3 @@ class MultiWozVocabActionDecoder(object):
         else:
             print('Cannot decode:', str(delex_action))
             action[act] = [['none', 'none']]
-

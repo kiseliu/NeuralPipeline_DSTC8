@@ -83,8 +83,8 @@ class MILU(Model):
         self.tag_encoder = intent_encoder
         self._feedforward = feedforward
         self._verbose_metrics = verbose_metrics
-        self.rl = False 
- 
+        self.rl = False
+
         if attention:
             if attention_function:
                 raise ConfigurationError("You can only specify an attention module or an "
@@ -107,16 +107,17 @@ class MILU(Model):
 
         if num_train_examples:
             try:
-                pos_weight = torch.tensor([log10((num_train_examples - self.vocab._retained_counter[intent_label_namespace][t]) / 
-                                self.vocab._retained_counter[intent_label_namespace][t]) for i, t in 
-                                self.vocab.get_index_to_token_vocabulary(intent_label_namespace).items()])
+                pos_weight = torch.tensor(
+                    [log10((num_train_examples - self.vocab._retained_counter[intent_label_namespace][t]) /
+                           self.vocab._retained_counter[intent_label_namespace][t]) for i, t in
+                     self.vocab.get_index_to_token_vocabulary(intent_label_namespace).items()])
             except:
-                pos_weight = torch.tensor([1. for i, t in 
-                                self.vocab.get_index_to_token_vocabulary(intent_label_namespace).items()])
+                pos_weight = torch.tensor([1. for i, t in
+                                           self.vocab.get_index_to_token_vocabulary(intent_label_namespace).items()])
         else:
             # pos_weight = torch.tensor([(lambda t: 1. if "general" in t else nongeneral_intent_weight)(t) for i, t in 
-            pos_weight = torch.tensor([(lambda t: nongeneral_intent_weight if "Request" in t else 1.)(t) for i, t in 
-                            self.vocab.get_index_to_token_vocabulary(intent_label_namespace).items()])
+            pos_weight = torch.tensor([(lambda t: nongeneral_intent_weight if "Request" in t else 1.)(t) for i, t in
+                                       self.vocab.get_index_to_token_vocabulary(intent_label_namespace).items()])
         self.intent_loss = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weight, reduction="none")
 
         tag_projection_input_dim = feedforward.get_output_dim() if self._feedforward else self.encoder.get_output_dim()
@@ -148,19 +149,19 @@ class MILU(Model):
         self.include_start_end_transitions = include_start_end_transitions
         if crf_decoding:
             self.crf = ConditionalRandomField(
-                    self.num_tags, constraints,
-                    include_start_end_transitions=include_start_end_transitions
+                self.num_tags, constraints,
+                include_start_end_transitions=include_start_end_transitions
             )
         else:
             self.crf = None
 
         self._intent_f1_metric = MultiLabelF1Measure(vocab,
-                                                namespace=intent_label_namespace)
+                                                     namespace=intent_label_namespace)
         self.calculate_span_f1 = calculate_span_f1
         if calculate_span_f1:
             if not label_encoding:
                 raise ConfigurationError("calculate_span_f1 is True, but "
-                                          "no label_encoding was specified.")
+                                         "no label_encoding was specified.")
             self._f1_metric = SpanBasedF1Measure(vocab,
                                                  tag_namespace=sequence_label_namespace,
                                                  label_encoding=label_encoding)
@@ -191,7 +192,7 @@ class MILU(Model):
         -------
         """
         if self.context_for_intent or self.context_for_tag or \
-            self.attention_for_intent or self.attention_for_tag:
+                self.attention_for_intent or self.attention_for_tag:
             embedded_context_input = self.text_field_embedder(context_tokens)
 
             if self.dropout:
@@ -235,7 +236,7 @@ class MILU(Model):
                 intent_encoded_text,
                 mask,
                 is_bidirectional)
-        
+
         tag_encoded_text = self.tag_encoder(encoded_text, mask) if self.tag_encoder else encoded_text
 
         if self.dropout and self.tag_encoder:
@@ -247,23 +248,23 @@ class MILU(Model):
 
         if self.context_for_intent:
             encoded_summary = torch.cat([encoded_summary, encoded_context_summary], dim=-1)
-        
+
         if self.attention_for_intent:
             encoded_summary = torch.cat([encoded_summary, attended_context], dim=-1)
 
         if self.context_for_tag:
-            tag_encoded_text = torch.cat([tag_encoded_text, 
-                encoded_context_summary.unsqueeze(dim=1).expand(
-                    encoded_context_summary.size(0),
-                    tag_encoded_text.size(1),
-                    encoded_context_summary.size(1))], dim=-1)
+            tag_encoded_text = torch.cat([tag_encoded_text,
+                                          encoded_context_summary.unsqueeze(dim=1).expand(
+                                              encoded_context_summary.size(0),
+                                              tag_encoded_text.size(1),
+                                              encoded_context_summary.size(1))], dim=-1)
 
         if self.attention_for_tag:
-            tag_encoded_text = torch.cat([tag_encoded_text, 
-                attended_context.unsqueeze(dim=1).expand(
-                    attended_context.size(0),
-                    tag_encoded_text.size(1),
-                    attended_context.size(1))], dim=-1)
+            tag_encoded_text = torch.cat([tag_encoded_text,
+                                          attended_context.unsqueeze(dim=1).expand(
+                                              attended_context.size(0),
+                                              tag_encoded_text.size(1),
+                                              attended_context.size(1))], dim=-1)
 
         intent_logits = self.intent_projection_layer(encoded_summary)
         intent_probs = torch.sigmoid(intent_logits)
@@ -278,7 +279,7 @@ class MILU(Model):
             predicted_tags = self.get_predicted_tags(sequence_logits)
 
         output = {"sequence_logits": sequence_logits, "mask": mask, "tags": predicted_tags,
-        "intent_logits": intent_logits, "intent_probs": intent_probs, "intents": predicted_intents}
+                  "intent_logits": intent_logits, "intent_probs": intent_probs, "intents": predicted_intents}
 
         if tags is not None:
             if self.crf is not None:
@@ -299,7 +300,7 @@ class MILU(Model):
 
             if self.calculate_span_f1:
                 self._f1_metric(class_probabilities, tags, mask.float())
-        
+
         if metadata is not None:
             output["words"] = [x["words"] for x in metadata]
 
@@ -313,7 +314,6 @@ class MILU(Model):
             self._intent_f1_metric(predicted_intents, intents)
 
         return output
-
 
     def get_predicted_tags(self, sequence_logits: torch.Tensor) -> torch.Tensor:
         """
@@ -331,7 +331,6 @@ class MILU(Model):
             tags = np.argmax(predictions, axis=-1)
             all_tags.append(tags)
         return all_tags
- 
 
     @overrides
     def decode(self, output_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
@@ -341,36 +340,36 @@ class MILU(Model):
         so we use an ugly nested list comprehension.
         """
         output_dict["tags"] = [
-                [self.vocab.get_token_from_index(tag, namespace=self.sequence_label_namespace)
-                 for tag in instance_tags]
-                for instance_tags in output_dict["tags"]
+            [self.vocab.get_token_from_index(tag, namespace=self.sequence_label_namespace)
+             for tag in instance_tags]
+            for instance_tags in output_dict["tags"]
         ]
         output_dict["intents"] = [
-                [self.vocab.get_token_from_index(intent[0], namespace=self.intent_label_namespace) 
-            for intent in instance_intents.nonzero().tolist()] 
+            [self.vocab.get_token_from_index(intent[0], namespace=self.intent_label_namespace)
+             for intent in instance_intents.nonzero().tolist()]
             for instance_intents in output_dict["intents"]
         ]
 
         output_dict["dialog_act"] = []
-        for i, tags in enumerate(output_dict["tags"]): 
+        for i, tags in enumerate(output_dict["tags"]):
             seq_len = len(output_dict["words"][i])
             spans = bio_tags_to_spans(tags[:seq_len])
             dialog_act = {}
             for span in spans:
                 domain_act = span[0].split("+")[0]
                 slot = span[0].split("+")[1]
-                value = " ".join(output_dict["words"][i][span[1][0]:span[1][1]+1])
+                value = " ".join(output_dict["words"][i][span[1][0]:span[1][1] + 1])
                 if domain_act not in dialog_act:
                     dialog_act[domain_act] = [[slot, value]]
                 else:
                     dialog_act[domain_act].append([slot, value])
             for intent in output_dict["intents"][i]:
-                if "+" in intent: 
-                    if "*" in intent: 
-                        intent, value = intent.split("*", 1) 
+                if "+" in intent:
+                    if "*" in intent:
+                        intent, value = intent.split("*", 1)
                     else:
                         value = "?"
-                    domain_act = intent.split("+")[0] 
+                    domain_act = intent.split("+")[0]
                     if domain_act not in dialog_act:
                         dialog_act[domain_act] = [[intent.split("+")[1], value]]
                     else:
@@ -381,14 +380,13 @@ class MILU(Model):
 
         return output_dict
 
-
     @overrides
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
         metrics_to_return = {}
         intent_f1_dict = self._intent_f1_metric.get_metric(reset=reset)
-        metrics_to_return.update({"int_"+x[:1]: y for x, y in intent_f1_dict.items() if "overall" in x})
+        metrics_to_return.update({"int_" + x[:1]: y for x, y in intent_f1_dict.items() if "overall" in x})
         if self.calculate_span_f1:
             f1_dict = self._f1_metric.get_metric(reset=reset)
-            metrics_to_return.update({"tag_"+x[:1]: y for x, y in f1_dict.items() if "overall" in x})
+            metrics_to_return.update({"tag_" + x[:1]: y for x, y in f1_dict.items() if "overall" in x})
         metrics_to_return.update(self._dai_f1_metric.get_metric(reset=reset))
         return metrics_to_return

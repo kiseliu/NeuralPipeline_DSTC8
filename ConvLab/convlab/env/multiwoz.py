@@ -24,6 +24,7 @@ from convlab.modules.policy.system.multiwoz.rule_based_multiwoz_bot import RuleB
 
 logger = logger.get_logger(__name__)
 
+
 class State(object):
     def __init__(self, state=None, reward=None, done=None):
         self.states = [state]
@@ -35,7 +36,7 @@ class MultiWozEnvironment(object):
     def __init__(self, env_spec, worker_id=None, action_dim=300):
         self.env_spec = env_spec
         self.worker_id = worker_id
-        self.observation_space = None 
+        self.observation_space = None
         self.action_space = None
 
         self.agenda = UserPolicyAgendaMultiWoz()  # Agenda-based Simulator (act-in act-out)
@@ -72,7 +73,7 @@ class MultiWozEnvironment(object):
         if 'evaluator' in self.env_spec:
             params = deepcopy(ps.get(self.env_spec, 'evaluator'))
             EvaluatorClass = getattr(evaluator, params.pop('name'))
-            self.evaluator = EvaluatorClass(**params) 
+            self.evaluator = EvaluatorClass(**params)
 
         self.simulator = UserSimulator(self.nlu, self.agenda, self.nlg)
         self.simulator.init_session()
@@ -80,7 +81,7 @@ class MultiWozEnvironment(object):
         self.history = []
         self.last_act = None
 
-        self.stat = {'success':0, 'fail':0}
+        self.stat = {'success': 0, 'fail': 0}
 
     def reset(self, train_mode, config):
         self.simulator.init_session()
@@ -89,12 +90,12 @@ class MultiWozEnvironment(object):
         self.last_act = user_act
         logger.act(f'User action: {user_act}')
         self.history.extend(["null", f'{user_response}'])
-        self.env_info = [State(user_response, 0., session_over)] 
+        self.env_info = [State(user_response, 0., session_over)]
         # update evaluator
         if self.evaluator:
             self.evaluator.add_goal(self.get_goal())
             logger.act(f'Goal: {self.get_goal()}')
-        return self.env_info 
+        return self.env_info
 
     def get_goal(self):
         return deepcopy(self.simulator.policy.domain_goals)
@@ -118,8 +119,8 @@ class MultiWozEnvironment(object):
                 reward = 2.0 * self.simulator.policy.max_turn if self.evaluator.task_success() else -1.0 * self.simulator.policy.max_turn
             else:
                 reward = -1.0
-        self.env_info = [State(user_response, reward, session_over)] 
-        return self.env_info 
+        self.env_info = [State(user_response, reward, session_over)]
+        return self.env_info
 
     def rule_policy(self, state, algorithm, body):
         def find_best_delex_act(action):
@@ -132,10 +133,10 @@ class MultiWozEnvironment(object):
                         score += len(set(a1[domain_act]) - set(a2[domain_act]))
                 return score
 
-            best_p_action_index = -1 
-            best_p_score = math.inf 
-            best_pn_action_index = -1 
-            best_pn_score = math.inf 
+            best_p_action_index = -1
+            best_p_score = math.inf
+            best_pn_action_index = -1
+            best_pn_score = math.inf
             for i, v_action in enumerate(self.action_vocab.vocab):
                 if v_action == action:
                     return i
@@ -158,17 +159,17 @@ class MultiWozEnvironment(object):
         for domain_act in rule_act:
             domain, act_type = domain_act.split('-', 1)
             if act_type in ['NoOffer', 'OfferBook']:
-                delex_act[domain_act] = ['none'] 
+                delex_act[domain_act] = ['none']
             elif act_type in ['Select']:
                 for sv in rule_act[domain_act]:
                     if sv[0] != "none":
-                        delex_act[domain_act] = [sv[0]] 
+                        delex_act[domain_act] = [sv[0]]
                         break
             else:
-                delex_act[domain_act] = [sv[0] for sv in rule_act[domain_act]] 
+                delex_act[domain_act] = [sv[0] for sv in rule_act[domain_act]]
         action = find_best_delex_act(delex_act)
 
-        return action 
+        return action
 
     def close(self):
         pass
@@ -198,7 +199,7 @@ class MultiWozEnv(BaseEnv):
             'observation_dim',
             'action_dim',
         ])
-        worker_id = int(f'{os.getpid()}{self.e+int(ps.unique_id())}'[-4:])
+        worker_id = int(f'{os.getpid()}{self.e + int(ps.unique_id())}'[-4:])
         self.u_env = MultiWozEnvironment(self.env_spec, worker_id, self.action_dim)
         self.evaluator = self.u_env.evaluator
         self.patch_gym_spaces(self.u_env)
@@ -227,7 +228,8 @@ class MultiWozEnv(BaseEnv):
     @lab_api
     def reset(self):
         # _reward = np.nan
-        env_info_dict = self.u_env.reset(train_mode=(util.get_lab_mode() != 'dev'), config=self.env_spec.get('multiwoz'))
+        env_info_dict = self.u_env.reset(train_mode=(util.get_lab_mode() != 'dev'),
+                                         config=self.env_spec.get('multiwoz'))
         a, b = 0, 0  # default singleton aeb
         env_info_a = self._get_env_info(env_info_dict, a)
         state = env_info_a.states[b]
@@ -245,7 +247,7 @@ class MultiWozEnv(BaseEnv):
         done = env_info_a.local_done[b]
         self.done = done = done or self.clock.t > self.max_t
         logger.debug(f'Env {self.e} step reward: {reward}, state: {state}, done: {done}')
-        return state, reward, done, env_info_a 
+        return state, reward, done, env_info_a
 
     @lab_api
     def close(self):

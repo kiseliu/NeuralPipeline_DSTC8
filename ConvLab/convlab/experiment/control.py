@@ -51,9 +51,9 @@ class Session:
         self.agent, self.env = make_agent_env(self.spec, global_nets)
         with util.ctx_lab_mode('eval'):  # env for eval
             self.eval_env = make_env(self.spec)
-            self.agent.body.eval_env = self.eval_env 
+            self.agent.body.eval_env = self.eval_env
         self.num_eval = ps.get(self.agent.spec, 'meta.num_eval')
-        self.warmup_epi = ps.get(self.agent.agent_spec, 'algorithm.warmup_epi') or -1 
+        self.warmup_epi = ps.get(self.agent.agent_spec, 'algorithm.warmup_epi') or -1
         logger.info(util.self_desc(self))
 
     def to_ckpt(self, env, mode='eval'):
@@ -79,7 +79,9 @@ class Session:
             body.log_summary('train')
 
         if self.to_ckpt(env, 'eval'):
-            avg_return, avg_len, avg_success, avg_p, avg_r, avg_f1, avg_book_rate = analysis.gen_avg_result(agent, self.eval_env, self.num_eval) 
+            avg_return, avg_len, avg_success, avg_p, avg_r, avg_f1, avg_book_rate = analysis.gen_avg_result(agent,
+                                                                                                            self.eval_env,
+                                                                                                            self.num_eval)
             body.eval_ckpt(self.eval_env, avg_return, avg_len, avg_success)
             body.log_summary('eval')
             if body.eval_reward_ma >= body.best_reward_ma:
@@ -92,16 +94,18 @@ class Session:
                     metrics = analysis.analyze_session(self.spec, body.eval_df, 'eval')
 
     def run_eval(self):
-        avg_return, avg_len, avg_success, avg_p, avg_r, avg_f1, avg_book_rate = analysis.gen_avg_result(self.agent, self.eval_env, self.num_eval) 
+        avg_return, avg_len, avg_success, avg_p, avg_r, avg_f1, avg_book_rate = analysis.gen_avg_result(self.agent,
+                                                                                                        self.eval_env,
+                                                                                                        self.num_eval)
         result = f'{self.num_eval} episodes, {avg_return:.2f} return'
         if not avg_success is None:
-            result += f', {avg_success*100:.2f}% success rate'
+            result += f', {avg_success * 100:.2f}% success rate'
         if avg_len:
             result += f', {avg_len:.2f} turns'
         if avg_p:
             result += f', {avg_p:.2f} P, {avg_r:.2f} R, {avg_f1:.2f} F1'
         if avg_book_rate:
-            result += f', {avg_book_rate*100:.2f}% book rate'
+            result += f', {avg_book_rate * 100:.2f}% book rate'
         logger.info(result)
 
     def run_rl(self):

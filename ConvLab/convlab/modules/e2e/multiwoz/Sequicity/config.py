@@ -9,7 +9,7 @@ import time
 class _Config:
     def __init__(self):
         self._init_logging_handler()
-        self.eos_m_token = 'EOS_M'       
+        self.eos_m_token = 'EOS_M'
         self.beam_len_bonus = 0.5
 
         self.mode = 'unknown'
@@ -17,19 +17,19 @@ class _Config:
         self.prev_z_method = 'none'
 
         self.seed = 0
-  
+
     def init_handler(self, m):
         init_method = {
-            'tsdf-camrest':self._camrest_tsdf_init,
-            'tsdf-kvret':self._kvret_tsdf_init,
-            'tsdf-multiwoz':self._multiwoz_tsdf_init
+            'tsdf-camrest': self._camrest_tsdf_init,
+            'tsdf-kvret': self._kvret_tsdf_init,
+            'tsdf-multiwoz': self._multiwoz_tsdf_init
         }
         init_method[m]()
 
     def _camrest_tsdf_init(self):
         self.beam_len_bonus = 0.5
         self.prev_z_method = 'separate'
-        self.vocab_size = 800 #840
+        self.vocab_size = 800  # 840
         self.embedding_size = 50
         self.hidden_size = 50
         self.split = (3, 1, 1)
@@ -45,7 +45,7 @@ class _Config:
         self.degree_size = 5
         self.layer_num = 1
         self.dropout_rate = 0.5
-        self.epoch_num = 100 # triggered by early stop
+        self.epoch_num = 100  # triggered by early stop
         self.rl_epoch_num = 2
         self.cuda = False
         self.spv_proportion = 100
@@ -101,11 +101,11 @@ class _Config:
         self.truncated = False
         self.pretrain = False
         self.oov_proportion = 100
-        
+
     def _multiwoz_tsdf_init(self):
         self.beam_len_bonus = 0.5
         self.prev_z_method = 'separate'
-        self.vocab_size = 4000 #9380
+        self.vocab_size = 4000  # 9380
         self.embedding_size = 50
         self.hidden_size = 50
         self.split = (3, 1, 1)
@@ -127,7 +127,7 @@ class _Config:
         self.degree_size = 5
         self.layer_num = 1
         self.dropout_rate = 0.5
-        self.epoch_num = 100 # triggered by early stop
+        self.epoch_num = 100  # triggered by early stop
         self.rl_epoch_num = 2
         self.cuda = True
         self.spv_proportion = 100
@@ -147,8 +147,8 @@ class _Config:
 
     def __str__(self):
         s = ''
-        for k,v in self.__dict__.items():
-            s += '{} : {}\n'.format(k,v)
+        for k, v in self.__dict__.items():
+            s += '{} : {}\n'.format(k, v)
         return s
 
     def _init_logging_handler(self):
@@ -163,5 +163,5 @@ class _Config:
         logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
 
-global_config = _Config()
 
+global_config = _Config()

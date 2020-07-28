@@ -81,41 +81,42 @@ class DialogAgent(Agent):
     Standardizes the Agent design to work in Lab.
     Access Envs properties by: Agents - AgentSpace - AEBSpace - EnvSpace - Envs
     '''
+
     def __init__(self, spec, body, a=None, global_nets=None):
         self.spec = spec
         self.a = a or 0  # for compatibility with agent_space
         self.agent_spec = spec['agent'][self.a]
         self.name = self.agent_spec['name']
         assert not ps.is_list(global_nets), f'single agent global_nets must be a dict, got {global_nets}'
-        self.nlu = None 
+        self.nlu = None
         if 'nlu' in self.agent_spec:
             params = deepcopy(ps.get(self.agent_spec, 'nlu'))
             NluClass = getattr(nlu, params.pop('name'))
-            self.nlu = NluClass(**params) 
-        self.dst = None 
+            self.nlu = NluClass(**params)
+        self.dst = None
         if 'dst' in self.agent_spec:
             params = deepcopy(ps.get(self.agent_spec, 'dst'))
             DstClass = getattr(dst, params.pop('name'))
-            self.dst = DstClass(**params) 
+            self.dst = DstClass(**params)
         if 'word_dst' in self.agent_spec:
             params = deepcopy(ps.get(self.agent_spec, 'word_dst'))
             DstClass = getattr(word_dst, params.pop('name'))
-            self.dst = DstClass(**params) 
+            self.dst = DstClass(**params)
         self.state_encoder = None
         if 'state_encoder' in self.agent_spec:
             params = deepcopy(ps.get(self.agent_spec, 'state_encoder'))
             StateEncoderClass = getattr(state_encoder, params.pop('name'))
-            self.state_encoder = StateEncoderClass(**params) 
+            self.state_encoder = StateEncoderClass(**params)
         self.action_decoder = None
         if 'action_decoder' in self.agent_spec:
             params = deepcopy(ps.get(self.agent_spec, 'action_decoder'))
             ActionDecoderClass = getattr(action_decoder, params.pop('name'))
-            self.action_decoder = ActionDecoderClass(**params) 
-        self.nlg = None 
+            self.action_decoder = ActionDecoderClass(**params)
+        self.nlg = None
         if 'nlg' in self.agent_spec:
             params = deepcopy(ps.get(self.agent_spec, 'nlg'))
             NlgClass = getattr(nlg, params.pop('name'))
-            self.nlg = NlgClass(**params) 
+            self.nlg = NlgClass(**params)
         self.body = body
         body.agent = self
         AlgorithmClass = getattr(algorithm, ps.get(self.agent_spec, 'algorithm.name'))
@@ -123,7 +124,7 @@ class DialogAgent(Agent):
         if ps.get(self.agent_spec, 'memory'):
             MemoryClass = getattr(memory, ps.get(self.agent_spec, 'memory.name'))
             self.body.memory = MemoryClass(self.agent_spec['memory'], self.body)
-        self.warmup_epi = ps.get(self.agent_spec, 'algorithm.warmup_epi') or -1 
+        self.warmup_epi = ps.get(self.agent_spec, 'algorithm.warmup_epi') or -1
         self.body.state, self.body.encoded_state, self.body.action = None, None, None
         logger.info(util.self_desc(self))
 
@@ -146,7 +147,7 @@ class DialogAgent(Agent):
         action = self.algorithm.act(self.body.encoded_state)
         self.body.action = action
 
-        output_act, decoded_action = self.action_decode(action, self.body.state) 
+        output_act, decoded_action = self.action_decode(action, self.body.state)
 
         logger.act(f'System action: {action}')
         logger.nl(f'System utterance: {decoded_action}')
@@ -163,31 +164,32 @@ class DialogAgent(Agent):
         input_act = da_normalize(input_act, role='usr')
 
         # state tracking
-        state = self.dst.update(input_act) if self.dst else input_act 
+        state = self.dst.update(input_act) if self.dst else input_act
 
         # update history 
         if self.dst:
             self.dst.state['history'][-1].append(str(obs))
 
         # encode state 
-        encoded_state = self.state_encoder.encode(state) if self.state_encoder else state 
+        encoded_state = self.state_encoder.encode(state) if self.state_encoder else state
 
-        if self.nlu and self.dst:  
-            self.dst.state['user_action'] = input_act 
-        elif self.dst and not isinstance(self.dst, (word_dst.MDBTTracker, word_dst.TRADETracker)):  # for act-in act-out agent
+        if self.nlu and self.dst:
+            self.dst.state['user_action'] = input_act
+        elif self.dst and not isinstance(self.dst,
+                                         (word_dst.MDBTTracker, word_dst.TRADETracker)):  # for act-in act-out agent
             self.dst.state['user_action'] = obs
 
         logger.nl(f'User utterance: {obs}')
         logger.act(f'Inferred user action: {input_act}')
         logger.state(f'Dialog state: {state}')
 
-        return input_act, state, encoded_state 
+        return input_act, state, encoded_state
 
     def action_decode(self, action, state):
         output_act = self.action_decoder.decode(action, state) if self.action_decoder else action
-        decoded_action = self.nlg.generate(output_act) if self.nlg else output_act 
-        return output_act, decoded_action 
-    
+        decoded_action = self.nlg.generate(output_act) if self.nlg else output_act
+        return output_act, decoded_action
+
     def get_env(self):
         return self.body.eval_env if util.in_eval_lab_modes() else self.body.env
 
@@ -272,7 +274,8 @@ class Body:
         # dataframes to track data for analysis.analyze_session
         # track training data per episode
         self.train_df = pd.DataFrame(columns=[
-            'epi', 't', 'wall_t', 'opt_step', 'frame', 'fps', 'total_reward', 'avg_return', 'avg_len', 'avg_success', 'loss', 'lr',
+            'epi', 't', 'wall_t', 'opt_step', 'frame', 'fps', 'total_reward', 'avg_return', 'avg_len', 'avg_success',
+            'loss', 'lr',
             'explore_var', 'entropy_coef', 'entropy', 'grad_norm'])
         # track eval data within run_eval. the same as train_df except for reward
         self.eval_df = self.train_df.copy()
@@ -336,7 +339,8 @@ class Body:
             'entropy': self.mean_entropy,
             'grad_norm': self.mean_grad_norm,
         }, dtype=np.float32)
-        assert all(col in self.train_df.columns for col in row.index), f'Mismatched row keys: {row.index} vs df columns {self.train_df.columns}'
+        assert all(col in self.train_df.columns for col in
+                   row.index), f'Mismatched row keys: {row.index} vs df columns {self.train_df.columns}'
         return row
 
     def train_ckpt(self):
@@ -355,7 +359,7 @@ class Body:
         self.eval_df.loc[len(self.eval_df)] = row
         # update current reward_ma
         self.eval_reward_ma = avg_return
-        self.eval_df.iloc[-1]['avg_return'] = avg_return 
+        self.eval_df.iloc[-1]['avg_return'] = avg_return
         self.eval_df.iloc[-1]['avg_len'] = avg_len
         self.eval_df.iloc[-1]['avg_success'] = avg_success
 

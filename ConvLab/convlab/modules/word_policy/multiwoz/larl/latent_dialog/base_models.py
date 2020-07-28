@@ -17,8 +17,8 @@ class BaseModel(nn.Module):
     def np2var(self, inputs, dtype):
         if inputs is None:
             return None
-        return cast_type(Variable(th.from_numpy(inputs)), 
-                         dtype, 
+        return cast_type(Variable(th.from_numpy(inputs)),
+                         dtype,
                          self.use_gpu)
 
     def forward(self, *inputs):
@@ -64,15 +64,13 @@ class BaseModel(nn.Module):
             print('Use RMSProp')
             return optim.RMSprop(params, lr=config.fine_tune_lr, momentum=config.fine_tune_momentum)
 
-        
     def model_sel_loss(self, loss, batch_cnt):
         return self.valid_loss(loss, batch_cnt)
-
 
     def extract_short_ctx(self, context, context_lens, backward_size=1):
         utts = []
         for b_id in range(context.shape[0]):
-            utts.append(context[b_id, context_lens[b_id]-1])
+            utts.append(context[b_id, context_lens[b_id] - 1])
         return np.array(utts)
 
     def flatten_context(self, context, context_lens, align_right=False):

@@ -21,7 +21,7 @@ class SysPolicy:
                     generate a NL utterance.
         """
         pass
-    
+
     def init_session(self):
         """Init the SysPolicy module to start a new session."""
         pass

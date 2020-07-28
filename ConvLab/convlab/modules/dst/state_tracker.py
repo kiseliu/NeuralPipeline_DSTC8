@@ -4,8 +4,10 @@
 """
 """
 
+
 class Tracker:
     """Base class for dialog state tracker models."""
+
     def __init__(self):
         """The constructor of Tracker class."""
         pass

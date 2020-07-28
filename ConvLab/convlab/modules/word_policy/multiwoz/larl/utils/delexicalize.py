@@ -12,6 +12,7 @@ digitpat = re.compile('\d+')
 timepat = re.compile("\d{1,2}[:]\d{1,2}")
 pricepat2 = re.compile("\d{1,3}[.]\d{1,2}")
 
+
 # FORMAT
 # domain_value
 # restaurant_postcode
@@ -148,6 +149,7 @@ def delexicaliseDomain(utt, dictionary, domain):
         utt = (' ' + utt + ' ').replace(' ' + key + ' ', ' ' + val + ' ')
         utt = utt[1:-1]  # why this?
     return utt
+
 
 if __name__ == '__main__':
     dic = prepareSlotValuesIndependent()

@@ -7,7 +7,8 @@ from convlab.modules.word_policy.multiwoz.larl.latent_dialog.corpora import SYS,
 from convlab.modules.word_policy.multiwoz.larl.latent_dialog.utils import INT, FLOAT, LONG, Pack, cast_type
 from convlab.modules.word_policy.multiwoz.larl.latent_dialog.enc2dec.encoders import RnnUttEncoder
 from convlab.modules.word_policy.multiwoz.larl.latent_dialog.enc2dec.decoders import DecoderRNN, GEN, TEACH_FORCE
-from convlab.modules.word_policy.multiwoz.larl.latent_dialog.criterions import NLLEntropy, CatKLLoss, Entropy, NormKLLoss
+from convlab.modules.word_policy.multiwoz.larl.latent_dialog.criterions import NLLEntropy, CatKLLoss, Entropy, \
+    NormKLLoss
 from convlab.modules.word_policy.multiwoz.larl.latent_dialog import nn_lib
 import numpy as np
 
@@ -178,7 +179,8 @@ class SysPerfectBD2Cat(BaseModel):
                 self.xc2z = nn_lib.Hidden2Discrete(self.utt_encoder.output_size * 2 + self.db_size + self.bs_size,
                                                    config.y_size, config.k_size, is_lstm=False)
             else:
-                self.xc2z = nn_lib.Hidden2Discrete(self.utt_encoder.output_size, config.y_size, config.k_size, is_lstm=False)
+                self.xc2z = nn_lib.Hidden2Discrete(self.utt_encoder.output_size, config.y_size, config.k_size,
+                                                   is_lstm=False)
 
         self.decoder = DecoderRNN(input_dropout_p=config.dropout,
                                   rnn_cell=config.dec_rnn_cell,
@@ -242,7 +244,7 @@ class SysPerfectBD2Cat(BaseModel):
         # create decoder initial states
         if self.simple_posterior:
             logits_qy, log_qy = self.c2z(enc_last)
-            sample_y = self.gumbel_connector(logits_qy, hard=mode==GEN)
+            sample_y = self.gumbel_connector(logits_qy, hard=mode == GEN)
             log_py = self.log_uniform_y
         else:
             logits_py, log_py = self.c2z(enc_last)
@@ -491,8 +493,8 @@ class SysPerfectBD2Gauss(BaseModel):
 
     def gaussian_logprob(self, mu, logvar, sample_z):
         var = th.exp(logvar)
-        constant = float(-0.5 * np.log(2*np.pi))
-        logprob = constant - 0.5 * logvar - th.pow((mu-sample_z), 2) / (2.0*var)
+        constant = float(-0.5 * np.log(2 * np.pi))
+        logprob = constant - 0.5 * logvar - th.pow((mu - sample_z), 2) / (2.0 * var)
         return logprob
 
     def forward_rl(self, data_feed, max_words, temp=0.1):
@@ -529,4 +531,3 @@ class SysPerfectBD2Gauss(BaseModel):
                                                  max_words=max_words,
                                                  temp=0.1)
         return logprobs, outs, joint_logpz, sample_z
-

@@ -13,17 +13,18 @@ domains = ['restaurant', 'hotel', 'attraction', 'train', 'hospital', 'taxi', 'po
 dbs = {}
 for domain in domains:
     dbs[domain] = json.load(open(os.path.join(os.path.dirname(os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))), 
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))),
         'data/multiwoz/db/{}_db.json'.format(domain))))
+
 
 def query(domain, constraints, ignore_open=True):
     """Returns the list of entities for a given domain
     based on the annotation of the belief state"""
     # query the db
     if domain == 'taxi':
-        return [{'taxi_colors': random.choice(dbs[domain]['taxi_colors']), 
-        'taxi_types': random.choice(dbs[domain]['taxi_types']), 
-        'taxi_phone': [random.randint(1, 9) for _ in range(10)]}]
+        return [{'taxi_colors': random.choice(dbs[domain]['taxi_colors']),
+                 'taxi_types': random.choice(dbs[domain]['taxi_types']),
+                 'taxi_phone': [random.randint(1, 9) for _ in range(10)]}]
     if domain == 'police':
         return dbs['police']
     if domain == 'hospital':
@@ -62,4 +63,3 @@ def query(domain, constraints, ignore_open=True):
             found.append(record)
 
     return found
-

@@ -33,7 +33,6 @@ from .modeling_utils import (CONFIG_NAME, WEIGHTS_NAME, PretrainedConfig, PreTra
                              SequenceSummary, PoolerAnswerClass, PoolerEndLogits, PoolerStartLogits,
                              add_start_docstrings)
 
-
 logger = logging.getLogger(__name__)
 
 XLNET_PRETRAINED_MODEL_ARCHIVE_MAP = {
@@ -116,6 +115,7 @@ def build_tf_xlnet_to_pytorch_map(model, config, tf_weights=None):
         'model/transformer/seg_embed': seg_embed_list})
     return tf_to_pt_map
 
+
 def load_tf_weights_in_xlnet(model, config, tf_path):
     """ Load tf checkpoints in a pytorch model
     """
@@ -124,7 +124,7 @@ def load_tf_weights_in_xlnet(model, config, tf_path):
         import tensorflow as tf
     except ImportError:
         logger.error("Loading a TensorFlow models in PyTorch, requires TensorFlow to be installed. Please see "
-            "https://www.tensorflow.org/install/ for installation instructions.")
+                     "https://www.tensorflow.org/install/ for installation instructions.")
         raise
     # Load weights from TF model
     init_vars = tf.train.list_variables(tf_path)
@@ -269,7 +269,7 @@ class XLNetConfig(PretrainedConfig):
         super(XLNetConfig, self).__init__(**kwargs)
 
         if isinstance(vocab_size_or_config_json_file, str) or (sys.version_info[0] == 2
-                        and isinstance(vocab_size_or_config_json_file, unicode)):
+                                                               and isinstance(vocab_size_or_config_json_file, unicode)):
             with open(vocab_size_or_config_json_file, "r", encoding='utf-8') as reader:
                 json_config = json.loads(reader.read())
             for key, value in json_config.items():
@@ -337,6 +337,8 @@ try:
     from apex.normalization.fused_layer_norm import FusedLayerNorm as XLNetLayerNorm
 except ImportError:
     logger.info("Better speed can be achieved with apex installed from https://www.github.com/nvidia/apex .")
+
+
     class XLNetLayerNorm(nn.Module):
         def __init__(self, d_model, eps=1e-12):
             """Construct a layernorm module in the TF style (epsilon inside the square root).
@@ -351,6 +353,7 @@ except ImportError:
             s = (x - u).pow(2).mean(-1, keepdim=True)
             x = (x - u) / torch.sqrt(s + self.variance_epsilon)
             return self.weight * x + self.bias
+
 
 class XLNetRelativeAttention(nn.Module):
     def __init__(self, config):
@@ -449,9 +452,9 @@ class XLNetRelativeAttention(nn.Module):
         return output
 
     def forward(self, h, g,
-                      attn_mask_h, attn_mask_g,
-                      r, seg_mat,
-                      mems=None, target_mapping=None, head_mask=None):
+                attn_mask_h, attn_mask_g,
+                r, seg_mat,
+                mems=None, target_mapping=None, head_mask=None):
         if g is not None:
             ###### Two-stream attention with relative positional encoding.
             # content based attention score
@@ -541,6 +544,7 @@ class XLNetRelativeAttention(nn.Module):
             outputs = outputs + (attn_prob,)
         return outputs
 
+
 class XLNetFeedForward(nn.Module):
     def __init__(self, config):
         super(XLNetFeedForward, self).__init__()
@@ -563,6 +567,7 @@ class XLNetFeedForward(nn.Module):
         output = self.dropout(output)
         output = self.layer_norm(output + inp)
         return output
+
 
 class XLNetLayer(nn.Module):
     def __init__(self, config):
@@ -617,7 +622,7 @@ class XLNetPreTrainedModel(PreTrainedModel):
                           module.seg_embed]:
                 param.data.normal_(mean=0.0, std=self.config.initializer_range)
         elif isinstance(module, XLNetModel):
-                module.mask_emb.data.normal_(mean=0.0, std=self.config.initializer_range)
+            module.mask_emb.data.normal_(mean=0.0, std=self.config.initializer_range)
 
 
 XLNET_START_DOCSTRING = r"""    The XLNet model was proposed in
@@ -691,6 +696,7 @@ XLNET_INPUTS_DOCSTRING = r"""
             ``1`` indicates the head is **not masked**, ``0`` indicates the head is **masked**.
 """
 
+
 @add_start_docstrings("The bare XLNet Model transformer outputing raw hidden-states without any specific head on top.",
                       XLNET_START_DOCSTRING, XLNET_INPUTS_DOCSTRING)
 class XLNetModel(XLNetPreTrainedModel):
@@ -720,6 +726,7 @@ class XLNetModel(XLNetPreTrainedModel):
         >>> last_hidden_states = outputs[0]  # The last hidden-state is the first element of the output tuple
 
     """
+
     def __init__(self, config):
         super(XLNetModel, self).__init__(config)
         self.output_attentions = config.output_attentions
@@ -827,8 +834,8 @@ class XLNetModel(XLNetPreTrainedModel):
                 bwd_pos_seq = bwd_pos_seq.clamp(-self.clamp_len, self.clamp_len)
 
             if bsz is not None:
-                fwd_pos_emb = self.positional_embedding(fwd_pos_seq, inv_freq, bsz//2)
-                bwd_pos_emb = self.positional_embedding(bwd_pos_seq, inv_freq, bsz//2)
+                fwd_pos_emb = self.positional_embedding(fwd_pos_seq, inv_freq, bsz // 2)
+                bwd_pos_emb = self.positional_embedding(bwd_pos_seq, inv_freq, bsz // 2)
             else:
                 fwd_pos_emb = self.positional_embedding(fwd_pos_seq, inv_freq)
                 bwd_pos_emb = self.positional_embedding(bwd_pos_seq, inv_freq)
@@ -910,9 +917,9 @@ class XLNetModel(XLNetPreTrainedModel):
         output_h = self.dropout(word_emb_k)
         if target_mapping is not None:
             word_emb_q = self.mask_emb.expand(target_mapping.shape[0], bsz, -1)
-        # else:  # We removed the inp_q input which was same as target mapping
-        #     inp_q_ext = inp_q[:, :, None]
-        #     word_emb_q = inp_q_ext * self.mask_emb + (1 - inp_q_ext) * word_emb_k
+            # else:  # We removed the inp_q input which was same as target mapping
+            #     inp_q_ext = inp_q[:, :, None]
+            #     word_emb_q = inp_q_ext * self.mask_emb + (1 - inp_q_ext) * word_emb_k
             output_g = self.dropout(word_emb_q)
         else:
             output_g = None
@@ -944,7 +951,8 @@ class XLNetModel(XLNetPreTrainedModel):
                 head_mask = head_mask.expand(self.n_layer, -1, -1, -1, -1)
             elif head_mask.dim() == 2:
                 head_mask = head_mask.unsqueeze(1).unsqueeze(1).unsqueeze(1)
-            head_mask = head_mask.to(dtype=next(self.parameters()).dtype) # switch to fload if need + fp16 compatibility
+            head_mask = head_mask.to(
+                dtype=next(self.parameters()).dtype)  # switch to fload if need + fp16 compatibility
         else:
             head_mask = [None] * self.n_layer
 
@@ -990,7 +998,7 @@ class XLNetModel(XLNetPreTrainedModel):
 
 @add_start_docstrings("""XLNet Model with a language modeling head on top
     (linear layer with weights tied to the input embeddings). """,
-    XLNET_START_DOCSTRING, XLNET_INPUTS_DOCSTRING)
+                      XLNET_START_DOCSTRING, XLNET_INPUTS_DOCSTRING)
 class XLNetLMHeadModel(XLNetPreTrainedModel):
     r"""
         **labels**: (`optional`) ``torch.LongTensor`` of shape ``(batch_size, sequence_length)``:
@@ -1032,6 +1040,7 @@ class XLNetLMHeadModel(XLNetPreTrainedModel):
         >>> next_token_logits = outputs[0]  # Output has shape [target_mapping.size(0), target_mapping.size(1), config.vocab_size]
 
     """
+
     def __init__(self, config):
         super(XLNetLMHeadModel, self).__init__(config)
         self.attn_type = config.attn_type
@@ -1072,7 +1081,7 @@ class XLNetLMHeadModel(XLNetPreTrainedModel):
 
 @add_start_docstrings("""XLNet Model with a sequence classification/regression head on top (a linear layer on top of
     the pooled output) e.g. for GLUE tasks. """,
-    XLNET_START_DOCSTRING, XLNET_INPUTS_DOCSTRING)
+                      XLNET_START_DOCSTRING, XLNET_INPUTS_DOCSTRING)
 class XLNetForSequenceClassification(XLNetPreTrainedModel):
     r"""
         **labels**: (`optional`) ``torch.LongTensor`` of shape ``(batch_size,)``:
@@ -1110,6 +1119,7 @@ class XLNetForSequenceClassification(XLNetPreTrainedModel):
         >>> loss, logits = outputs[:2]
 
     """
+
     def __init__(self, config):
         super(XLNetForSequenceClassification, self).__init__(config)
         self.num_labels = config.num_labels
@@ -1149,7 +1159,7 @@ class XLNetForSequenceClassification(XLNetPreTrainedModel):
 
 @add_start_docstrings("""XLNet Model with a span classification head on top for extractive question-answering tasks like SQuAD (a linear layers on top of
     the hidden-states output to compute `span start logits` and `span end logits`). """,
-    XLNET_START_DOCSTRING, XLNET_INPUTS_DOCSTRING)
+                      XLNET_START_DOCSTRING, XLNET_INPUTS_DOCSTRING)
 class XLNetForQuestionAnswering(XLNetPreTrainedModel):
     r"""
         **start_positions**: (`optional`) ``torch.LongTensor`` of shape ``(batch_size,)``:
@@ -1211,6 +1221,7 @@ class XLNetForQuestionAnswering(XLNetPreTrainedModel):
         >>> loss, start_scores, end_scores = outputs[:2]
 
     """
+
     def __init__(self, config):
         super(XLNetForQuestionAnswering, self).__init__(config)
         self.start_n_top = config.start_n_top
@@ -1264,24 +1275,29 @@ class XLNetForQuestionAnswering(XLNetPreTrainedModel):
         else:
             # during inference, compute the end logits based on beam search
             bsz, slen, hsz = hidden_states.size()
-            start_log_probs = F.softmax(start_logits, dim=-1) # shape (bsz, slen)
+            start_log_probs = F.softmax(start_logits, dim=-1)  # shape (bsz, slen)
 
-            start_top_log_probs, start_top_index = torch.topk(start_log_probs, self.start_n_top, dim=-1) # shape (bsz, start_n_top)
-            start_top_index_exp = start_top_index.unsqueeze(-1).expand(-1, -1, hsz) # shape (bsz, start_n_top, hsz)
-            start_states = torch.gather(hidden_states, -2, start_top_index_exp) # shape (bsz, start_n_top, hsz)
-            start_states = start_states.unsqueeze(1).expand(-1, slen, -1, -1) # shape (bsz, slen, start_n_top, hsz)
+            start_top_log_probs, start_top_index = torch.topk(start_log_probs, self.start_n_top,
+                                                              dim=-1)  # shape (bsz, start_n_top)
+            start_top_index_exp = start_top_index.unsqueeze(-1).expand(-1, -1, hsz)  # shape (bsz, start_n_top, hsz)
+            start_states = torch.gather(hidden_states, -2, start_top_index_exp)  # shape (bsz, start_n_top, hsz)
+            start_states = start_states.unsqueeze(1).expand(-1, slen, -1, -1)  # shape (bsz, slen, start_n_top, hsz)
 
-            hidden_states_expanded = hidden_states.unsqueeze(2).expand_as(start_states) # shape (bsz, slen, start_n_top, hsz)
+            hidden_states_expanded = hidden_states.unsqueeze(2).expand_as(
+                start_states)  # shape (bsz, slen, start_n_top, hsz)
             p_mask = p_mask.unsqueeze(-1) if p_mask is not None else None
             end_logits = self.end_logits(hidden_states_expanded, start_states=start_states, p_mask=p_mask)
-            end_log_probs = F.softmax(end_logits, dim=1) # shape (bsz, slen, start_n_top)
+            end_log_probs = F.softmax(end_logits, dim=1)  # shape (bsz, slen, start_n_top)
 
-            end_top_log_probs, end_top_index = torch.topk(end_log_probs, self.end_n_top, dim=1) # shape (bsz, end_n_top, start_n_top)
+            end_top_log_probs, end_top_index = torch.topk(end_log_probs, self.end_n_top,
+                                                          dim=1)  # shape (bsz, end_n_top, start_n_top)
             end_top_log_probs = end_top_log_probs.view(-1, self.start_n_top * self.end_n_top)
             end_top_index = end_top_index.view(-1, self.start_n_top * self.end_n_top)
 
-            start_states = torch.einsum("blh,bl->bh", hidden_states, start_log_probs)  # get the representation of START as weighted sum of hidden states
-            cls_logits = self.answer_class(hidden_states, start_states=start_states, cls_index=cls_index)  # Shape (batch size,): one single `cls_logits` for each sample
+            start_states = torch.einsum("blh,bl->bh", hidden_states,
+                                        start_log_probs)  # get the representation of START as weighted sum of hidden states
+            cls_logits = self.answer_class(hidden_states, start_states=start_states,
+                                           cls_index=cls_index)  # Shape (batch size,): one single `cls_logits` for each sample
 
             outputs = (start_top_log_probs, start_top_index, end_top_log_probs, end_top_index, cls_logits) + outputs
 

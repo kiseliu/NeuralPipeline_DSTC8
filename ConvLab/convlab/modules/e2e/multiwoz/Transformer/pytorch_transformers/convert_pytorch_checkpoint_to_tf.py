@@ -23,8 +23,7 @@ import tensorflow as tf
 from pytorch_pretrained_bert.modeling import BertModel
 
 
-def convert_pytorch_checkpoint_to_tf(model:BertModel, ckpt_dir:str, model_name:str):
-
+def convert_pytorch_checkpoint_to_tf(model: BertModel, ckpt_dir: str, model_name: str):
     """
     :param model:BertModel Pytorch model instance to be converted
     :param ckpt_dir: Tensorflow model directory
@@ -66,12 +65,12 @@ def convert_pytorch_checkpoint_to_tf(model:BertModel, ckpt_dir:str, model_name:s
     state_dict = model.state_dict()
     tf_vars = []
 
-    def to_tf_var_name(name:str):
+    def to_tf_var_name(name: str):
         for patt, repl in iter(var_map):
             name = name.replace(patt, repl)
         return 'bert/{}'.format(name)
 
-    def assign_tf_var(tensor:np.ndarray, name:str):
+    def assign_tf_var(tensor: np.ndarray, name: str):
         tmp_var = tf.Variable(initial_value=tensor)
         tf_var = tf.get_variable(dtype=tmp_var.dtype, shape=tmp_var.shape, name=name)
         op = tf.assign(ref=tf_var, value=tmp_var)
@@ -112,13 +111,13 @@ def main(raw_args=None):
                         required=True,
                         help="Directory in which to save tensorflow model")
     args = parser.parse_args(raw_args)
-    
+
     model = BertModel.from_pretrained(
         pretrained_model_name_or_path=args.model_name,
         state_dict=torch.load(args.pytorch_model_path),
         cache_dir=args.cache_dir
     )
-    
+
     convert_pytorch_checkpoint_to_tf(
         model=model,
         ckpt_dir=args.tf_cache_dir,

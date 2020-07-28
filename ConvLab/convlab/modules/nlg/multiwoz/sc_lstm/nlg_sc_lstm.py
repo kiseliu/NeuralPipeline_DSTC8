@@ -20,6 +20,7 @@ from convlab.modules.nlg.nlg import NLG
 DEFAULT_DIRECTORY = "models"
 DEFAULT_ARCHIVE_FILE = os.path.join(DEFAULT_DIRECTORY, "nlg-sclstm-multiwoz.zip")
 
+
 def parse(is_user):
     if is_user:
         args = {
@@ -45,8 +46,8 @@ def parse(is_user):
 
 
 class SCLSTM(NLG):
-    def __init__(self, 
-                 archive_file=DEFAULT_ARCHIVE_FILE, 
+    def __init__(self,
+                 archive_file=DEFAULT_ARCHIVE_FILE,
                  use_cuda=False,
                  is_user=False,
                  model_file=None):
@@ -71,7 +72,8 @@ class SCLSTM(NLG):
         d_size = self.dataset.do_size + self.dataset.da_size + self.dataset.sv_size  # len of 1-hot feat
         vocab_size = len(self.dataset.word2index)
 
-        self.model = LMDeep('sclstm', vocab_size, vocab_size, hidden_size, d_size, n_layer=self.args['n_layer'], use_cuda=use_cuda)
+        self.model = LMDeep('sclstm', vocab_size, vocab_size, hidden_size, d_size, n_layer=self.args['n_layer'],
+                            use_cuda=use_cuda)
         model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), self.args['model_path'])
         # print(model_path)
         assert os.path.isfile(model_path)
@@ -133,12 +135,12 @@ class SCLSTM(NLG):
 
         decoded_words = self.model.generate(self.dataset, feats_var, self.args['beam_size'])
         delex = decoded_words[0]  # (beam_size)
-        
+
         return delex
 
     def generate_slots(self, meta):
         meta = deepcopy(meta)
-        
+
         delex = self.generate_delex(meta)
         # get all informable or requestable slots
         slots = []
@@ -153,19 +155,19 @@ class SCLSTM(NLG):
                         counter[placeholder] = 1
                     else:
                         counter[placeholder] += 1
-                    slot.append(placeholder+'-'+str(counter[placeholder]))
+                    slot.append(placeholder + '-' + str(counter[placeholder]))
             slots.append(slot)
-            
+
         # for i in range(self.args.beam_size):
         #     print(i, slots[i])
-            
+
         return slots[0]
-    
+
     def generate(self, meta):
         meta = deepcopy(meta)
-        
+
         delex = self.generate_delex(meta)
-        
+
         # replace the placeholder with entities
         recover = []
         for sen in delex:
@@ -195,4 +197,3 @@ class SCLSTM(NLG):
         #     print(i, recover[i])
 
         return recover[0]
-

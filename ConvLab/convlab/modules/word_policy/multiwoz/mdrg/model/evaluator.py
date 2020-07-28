@@ -3,6 +3,7 @@
 
 import random
 import sys
+
 sys.path.append('..')
 
 from convlab.modules.word_policy.multiwoz.mdrg import queryResultVenues
@@ -53,8 +54,9 @@ def evaluateModel(dialogues, val_dials, mode='valid'):
     successes, matches = 0, 0
     total = 0
 
-    gen_stats = {'restaurant': [0, 0, 0], 'hotel': [0, 0, 0], 'attraction': [0, 0, 0], 'train': [0, 0,0], 'taxi': [0, 0, 0],
-             'hospital': [0, 0, 0], 'police': [0, 0, 0]}
+    gen_stats = {'restaurant': [0, 0, 0], 'hotel': [0, 0, 0], 'attraction': [0, 0, 0], 'train': [0, 0, 0],
+                 'taxi': [0, 0, 0],
+                 'hospital': [0, 0, 0], 'police': [0, 0, 0]}
     sng_gen_stats = {'restaurant': [0, 0, 0], 'hotel': [0, 0, 0], 'attraction': [0, 0, 0], 'train': [0, 0, 0],
                      'taxi': [0, 0, 0],
                      'hospital': [0, 0, 0], 'police': [0, 0, 0]}
@@ -103,10 +105,12 @@ def evaluateModel(dialogues, val_dials, mode='valid'):
 
     # Print results
     if mode == 'valid':
-        try: print("Valid BLUES SCORE %.10f" % bscorer.score(model_corpus, corpus))
-        except: print('BLUE SCORE ERROR')
+        try:
+            print("Valid BLUES SCORE %.10f" % bscorer.score(model_corpus, corpus))
+        except:
+            print('BLUE SCORE ERROR')
         print('Valid Corpus Matches : %2.2f%%' % (matches / float(total) * 100))
-        print('Valid Corpus Success : %2.2f%%' %  (successes / float(total) * 100))
+        print('Valid Corpus Success : %2.2f%%' % (successes / float(total) * 100))
         print('Valid Total number of dialogues: %s ' % total)
     else:
         try:
@@ -143,7 +147,7 @@ def evaluateGeneratedDialogue(dialog, goal, realDialogue, real_requestables):
             if '[' + domain + '_name]' in sent_t or '_id' in sent_t:
                 if domain in ['restaurant', 'hotel', 'attraction', 'train']:
                     # HERE YOU CAN PUT YOUR BELIEF STATE ESTIMATION
-                    venues = queryResultVenues(domain, realDialogue['log'][t*2 + 1])
+                    venues = queryResultVenues(domain, realDialogue['log'][t * 2 + 1])
 
                     # if venue has changed
                     if len(venue_offered[domain]) == 0 and venues:
@@ -195,7 +199,6 @@ def evaluateGeneratedDialogue(dialog, goal, realDialogue, real_requestables):
         if domain in ['taxi', 'police', 'hospital']:
             venue_offered[domain] = '[' + domain + '_name]'
 
-
         if domain == 'train':
             if not venue_offered[domain]:
                 # if realDialogue['goal'][domain].has_key('reqt') and 'id' not in realDialogue['goal'][domain]['reqt']:
@@ -210,7 +213,8 @@ def evaluateGeneratedDialogue(dialog, goal, realDialogue, real_requestables):
     The dialogue is successful if that's the case for all domains.
     """
     # HARD EVAL
-    stats = {'restaurant': [0, 0, 0], 'hotel': [0, 0, 0], 'attraction': [0, 0, 0], 'train': [0, 0,0], 'taxi': [0, 0, 0],
+    stats = {'restaurant': [0, 0, 0], 'hotel': [0, 0, 0], 'attraction': [0, 0, 0], 'train': [0, 0, 0],
+             'taxi': [0, 0, 0],
              'hospital': [0, 0, 0], 'police': [0, 0, 0]}
 
     match = 0
@@ -266,7 +270,7 @@ def evaluateGeneratedDialogue(dialog, goal, realDialogue, real_requestables):
         else:
             success = 0
 
-    #rint requests, 'DIFF', requests_real, 'SUCC', success
+    # rint requests, 'DIFF', requests_real, 'SUCC', success
     return success, match, stats
 
 
@@ -315,7 +319,7 @@ def evaluateRealDialogue(dialog, filename):
                                 flag = True
                                 break
                         if not flag and venues:  # sometimes there are no results so sample won't work
-                            #print venues
+                            # print venues
                             venue_offered[domain] = random.sample(venues, 1)
                 else:  # not limited so we can provide one
                     venue_offered[domain] = '[' + domain + '_name]'
@@ -332,7 +336,7 @@ def evaluateRealDialogue(dialog, filename):
                             if dialog['log'][t * 2]['db_pointer'][-3] == 1:  # if pointer was allowing for that?
                                 provided_requestables[domain].append('reference')
 
-                                #return goal, 0, match, real_requestables
+                                # return goal, 0, match, real_requestables
                         elif 'train_reference' in sent_t:
                             if dialog['log'][t * 2]['db_pointer'][-1] == 1:  # if pointer was allowing for that?
                                 provided_requestables[domain].append('reference')
@@ -361,7 +365,8 @@ def evaluateRealDialogue(dialog, filename):
             venue_offered[domain] = '[' + domain + '_name]'
 
     # HARD (0-1) EVAL
-    stats = {'restaurant': [0, 0, 0], 'hotel': [0, 0, 0], 'attraction': [0, 0, 0], 'train': [0, 0,0], 'taxi': [0, 0, 0],
+    stats = {'restaurant': [0, 0, 0], 'hotel': [0, 0, 0], 'attraction': [0, 0, 0], 'train': [0, 0, 0],
+             'taxi': [0, 0, 0],
              'hospital': [0, 0, 0], 'police': [0, 0, 0]}
 
     match, success = 0, 0
@@ -370,7 +375,7 @@ def evaluateRealDialogue(dialog, filename):
         match_stat = 0
         if domain in ['restaurant', 'hotel', 'attraction', 'train']:
             goal_venues = queryResultVenues(domain, dialog['goal'][domain]['info'], real_belief=True)
-            #print(goal_venues)
+            # print(goal_venues)
             if isinstance(venue_offered[domain], str) and '_name' in venue_offered[domain]:
                 match += 1
                 match_stat = 1
@@ -408,7 +413,7 @@ def evaluateRealDialogue(dialog, filename):
                     domain_success += 1
 
             if domain_success >= len(real_requestables[domain]):
-                success +=1
+                success += 1
                 success_stat = 1
 
             stats[domain][1] = success_stat
@@ -420,4 +425,3 @@ def evaluateRealDialogue(dialog, filename):
             success = 0
 
     return goal, success, match, real_requestables, stats
-

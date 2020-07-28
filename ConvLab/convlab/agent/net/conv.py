@@ -123,7 +123,8 @@ class ConvNet(Net, nn.Module):
             tail_in_dim = self.conv_out_dim
         else:
             # fc body from flattened conv
-            self.fc_model = net_util.build_fc_model([self.conv_out_dim] + self.fc_hid_layers, self.hid_layers_activation)
+            self.fc_model = net_util.build_fc_model([self.conv_out_dim] + self.fc_hid_layers,
+                                                    self.hid_layers_activation)
             tail_in_dim = self.fc_hid_layers[-1]
 
         # tails. avoid list for single-tail for compute speed
@@ -284,7 +285,8 @@ class DuelingConvNet(ConvNet):
             tail_in_dim = self.conv_out_dim
         else:
             # fc layer from flattened conv
-            self.fc_model = net_util.build_fc_model([self.conv_out_dim] + self.fc_hid_layers, self.hid_layers_activation)
+            self.fc_model = net_util.build_fc_model([self.conv_out_dim] + self.fc_hid_layers,
+                                                    self.hid_layers_activation)
             tail_in_dim = self.fc_hid_layers[-1]
 
         # tails. avoid list for single-tail for compute speed

@@ -37,6 +37,7 @@ def timeit(fn):
     # => foo
     # => Timed: foo 1000.9971ms
     '''
+
     @wraps(fn)
     def time_fn(*args, **kwargs):
         start = time.time()
@@ -44,4 +45,5 @@ def timeit(fn):
         end = time.time()
         logger.debug(f'Timed: {fn.__name__} {round((end - start) * 1000, 4)}ms')
         return output
+
     return time_fn

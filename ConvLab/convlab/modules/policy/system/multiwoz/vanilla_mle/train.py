@@ -17,36 +17,34 @@ from allennlp.training.trainer import Trainer, TrainerPieces
 from allennlp.training.trainer_base import TrainerBase
 from allennlp.training.util import create_serialization_dir, evaluate
 
-from convlab.modules.policy.system.multiwoz.vanilla_mle import dataset_reader, model 
+from convlab.modules.policy.system.multiwoz.vanilla_mle import dataset_reader, model
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
-
 argparser = argparse.ArgumentParser(description="Train a model.")
 argparser.add_argument('param_path',
-                        type=str,
-                        help='path to parameter file describing the model to be trained')
+                       type=str,
+                       help='path to parameter file describing the model to be trained')
 argparser.add_argument('-s', '--serialization-dir',
-                        required=True,
-                        type=str,
-                        help='directory in which to save the model and its logs')
+                       required=True,
+                       type=str,
+                       help='directory in which to save the model and its logs')
 argparser.add_argument('-r', '--recover',
-                        action='store_true',
-                        default=False,
-                        help='recover training from the state in serialization_dir')
+                       action='store_true',
+                       default=False,
+                       help='recover training from the state in serialization_dir')
 argparser.add_argument('-f', '--force',
-                        action='store_true',
-                        required=False,
-                        help='overwrite the output directory if it exists')
+                       action='store_true',
+                       required=False,
+                       help='overwrite the output directory if it exists')
 argparser.add_argument('-o', '--overrides',
-                        type=str,
-                        default="",
-                        help='a JSON structure used to override the experiment configuration')
+                       type=str,
+                       default="",
+                       help='a JSON structure used to override the experiment configuration')
 argparser.add_argument('--file-friendly-logging',
-                        action='store_true',
-                        default=False,
-                        help='outputs tqdm status on separate lines and slows tqdm refresh rate')
-
+                       action='store_true',
+                       default=False,
+                       help='outputs tqdm status on separate lines and slows tqdm refresh rate')
 
 
 def train_model_from_args(args: argparse.Namespace):
@@ -141,13 +139,13 @@ def train_model(params: Params,
         # Special logic to instantiate backward-compatible trainer.
         pieces = TrainerPieces.from_params(params, serialization_dir, recover)  # pylint: disable=no-member
         trainer = Trainer.from_params(
-                model=pieces.model,
-                serialization_dir=serialization_dir,
-                iterator=pieces.iterator,
-                train_data=pieces.train_dataset,
-                validation_data=pieces.validation_dataset,
-                params=pieces.params,
-                validation_iterator=pieces.validation_iterator)
+            model=pieces.model,
+            serialization_dir=serialization_dir,
+            iterator=pieces.iterator,
+            train_data=pieces.train_dataset,
+            validation_data=pieces.validation_dataset,
+            params=pieces.params,
+            validation_iterator=pieces.validation_iterator)
         evaluation_iterator = pieces.validation_iterator or pieces.iterator
         evaluation_dataset = pieces.test_dataset
 
@@ -172,7 +170,7 @@ def train_model(params: Params,
     if evaluation_dataset and evaluate_on_test:
         logger.info("The model will be evaluated using the best epoch weights.")
         test_metrics = evaluate(trainer.model, evaluation_dataset, evaluation_iterator,
-                                cuda_device=trainer._cuda_devices[0], # pylint: disable=protected-access,
+                                cuda_device=trainer._cuda_devices[0],  # pylint: disable=protected-access,
                                 # TODO(brendanr): Pass in an arg following Joel's trainer refactor.
                                 batch_weight_key="")
 
@@ -191,6 +189,7 @@ def train_model(params: Params,
 
     # We count on the trainer to have the model with best weights
     return trainer.model
+
 
 if __name__ == "__main__":
     args = argparser.parse_args()

@@ -124,18 +124,22 @@ pro_correction = {
 def null_boldify(content):
     return content
 
+
 def do_boldify(content):
     return '<b>' + content + '</b>'
 
+
 def nomial_sample(counter: Counter):
     return list(counter.keys())[np.argmax(np.random.multinomial(1, list(counter.values())))]
+
 
 class GoalGenerator:
     """User goal generator."""
 
     def __init__(self,
                  goal_model_path=os.path.join(
-                     os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))),
+                     os.path.dirname(
+                         os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))),
                      'data/multiwoz/goal/goal_model.pkl'),
                  corpus_path=None,
                  boldify=False):
@@ -176,7 +180,7 @@ class GoalGenerator:
             first_index = []
             for domain in d_domains:
                 message = [dialogs[d]['goal']['message']] if isinstance(dialogs[d]['goal']['message'], str) else \
-                dialogs[d]['goal']['message']
+                    dialogs[d]['goal']['message']
                 for i, m in enumerate(message):
                     if domain_keywords[domain].lower() in m.lower() or domain.lower() in m.lower():
                         first_index.append(i)
@@ -414,7 +418,8 @@ class GoalGenerator:
 
         # using taxi to communte between places, removing destination and departure.
         if 'taxi' in domain_ordering:
-            places = [dom for dom in domain_ordering[: domain_ordering.index('taxi')] if 'address' in self.ind_slot_dist[dom]['reqt'].keys()]
+            places = [dom for dom in domain_ordering[: domain_ordering.index('taxi')] if
+                      'address' in self.ind_slot_dist[dom]['reqt'].keys()]
             if len(places) >= 1:
                 del user_goal['taxi']['info']['destination']
                 user_goal[places[-1]]['reqt'] = list(set(user_goal[places[-1]].get('reqt', [])).union({'address'}))
@@ -457,10 +462,10 @@ class GoalGenerator:
         if 'hotel' in domain_ordering and 'train' in domain_ordering and \
                 'book' in user_goal['hotel'] and 'info' in user_goal['train']:
             if user_goal['train']['info']['destination'] == 'cambridge' and \
-                'day' in user_goal['hotel']['book']:
+                    'day' in user_goal['hotel']['book']:
                 user_goal['train']['info']['day'] = user_goal['hotel']['book']['day']
             elif user_goal['train']['info']['departure'] == 'cambridge' and \
-                'day' in user_goal['hotel']['book'] and 'stay' in user_goal['hotel']['book']:
+                    'day' in user_goal['hotel']['book'] and 'stay' in user_goal['hotel']['book']:
                 user_goal['train']['info']['day'] = days[
                     (days.index(user_goal['hotel']['book']['day']) + int(
                         user_goal['hotel']['book']['stay'])) % 7]
@@ -501,7 +506,8 @@ class GoalGenerator:
                                           info in user_goal['attraction'].keys() and
                                           'area' in user_goal['restaurant'][info] and
                                           'area' in user_goal['attraction'][info] and
-                                          user_goal['restaurant'][info]['area'] == user_goal['attraction'][info]['area']):
+                                          user_goal['restaurant'][info]['area'] == user_goal['attraction'][info][
+                                              'area']):
                     return templates[domain][slot].format(self.boldify(user_goal[domain][info][slot]))
                 else:
                     restaurant_index = user_goal['domain_ordering'].index('restaurant')
@@ -525,17 +531,21 @@ class GoalGenerator:
                     if 'arriveBy' in state[info]:
                         m.append('The taxi should arrive at the {} from the {} by {}.'.format(self.boldify(places[0]),
                                                                                               self.boldify(places[1]),
-                                                                                              self.boldify(state[info]['arriveBy'])))
+                                                                                              self.boldify(state[info][
+                                                                                                               'arriveBy'])))
                     elif 'leaveAt' in state[info]:
                         m.append('The taxi should leave from the {} to the {} after {}.'.format(self.boldify(places[0]),
                                                                                                 self.boldify(places[1]),
-                                                                                                self.boldify(state[info]['leaveAt'])))
+                                                                                                self.boldify(
+                                                                                                    state[info][
+                                                                                                        'leaveAt'])))
                     message.append(' '.join(m))
             else:
                 while len(state[info]) > 0:
                     num_acts = random.randint(1, min(len(state[info]), 3))
                     slots = random.sample(list(state[info].keys()), num_acts)
-                    sents = [fill_info_template(user_goal, dom, slot, info) for slot in slots if slot not in ['parking', 'internet']]
+                    sents = [fill_info_template(user_goal, dom, slot, info) for slot in slots if
+                             slot not in ['parking', 'internet']]
                     if 'parking' in slots:
                         sents.append(templates[dom]['parking ' + state[info]['parking']])
                     if 'internet' in slots:
@@ -548,13 +558,16 @@ class GoalGenerator:
 
             # fail_info
             if 'fail_info' in user_goal[dom]:
-            # if 'fail_info' in user_goal[dom]:
+                # if 'fail_info' in user_goal[dom]:
                 adjusted_slot = list(filter(lambda x: x[0][1] != x[1][1],
-                                            zip(user_goal[dom]['info'].items(), user_goal[dom]['fail_info'].items())))[0][0][0]
+                                            zip(user_goal[dom]['info'].items(), user_goal[dom]['fail_info'].items())))[
+                    0][0][0]
                 if adjusted_slot in ['internet', 'parking']:
-                    message.append(templates[dom]['fail_info ' + adjusted_slot + ' ' + user_goal[dom]['info'][adjusted_slot]])
+                    message.append(
+                        templates[dom]['fail_info ' + adjusted_slot + ' ' + user_goal[dom]['info'][adjusted_slot]])
                 else:
-                    message.append(templates[dom]['fail_info ' + adjusted_slot].format(self.boldify(user_goal[dom]['info'][adjusted_slot])))
+                    message.append(templates[dom]['fail_info ' + adjusted_slot].format(
+                        self.boldify(user_goal[dom]['info'][adjusted_slot])))
 
             # reqt
             if 'reqt' in state:
@@ -620,7 +633,8 @@ class GoalGenerator:
             # fail_book
             if 'fail_book' in user_goal[dom]:
                 adjusted_slot = list(filter(lambda x: x[0][1] != x[1][1], zip(user_goal[dom]['book'].items(),
-                                                                              user_goal[dom]['fail_book'].items())))[0][0][0]
+                                                                              user_goal[dom]['fail_book'].items())))[0][
+                    0][0]
 
                 if adjusted_slot in ['internet', 'parking']:
                     message.append(

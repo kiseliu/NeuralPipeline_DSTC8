@@ -60,12 +60,12 @@ class DealDataLoaders(BaseDataLoaders):
             goals.append(goal_row)
             goal_lens.append(len(goal_row))
 
-        vec_ctx_lens = np.array(ctx_lens) # (batch_size, ), number of turns
+        vec_ctx_lens = np.array(ctx_lens)  # (batch_size, ), number of turns
         max_ctx_len = np.max(vec_ctx_lens)
         vec_ctx_utts = np.zeros((self.batch_size, max_ctx_len, self.max_utt_len), dtype=np.int32)
         # confs is used to add some hand-crafted features
         vec_ctx_confs = np.ones((self.batch_size, max_ctx_len), dtype=np.float32)
-        vec_out_lens = np.array(out_lens) # (batch_size, ), number of tokens
+        vec_out_lens = np.array(out_lens)  # (batch_size, ), number of tokens
         max_out_len = np.max(vec_out_lens)
         vec_out_utts = np.zeros((self.batch_size, max_out_len), dtype=np.int32)
 
@@ -154,7 +154,7 @@ class BeliefDbDataLoaders(BaseDataLoaders):
         ctx_utts, ctx_lens = [], []
         out_utts, out_lens = [], []
 
-        out_bs, out_db = [] , []
+        out_bs, out_db = [], []
         goals, goal_lens = [], [[] for _ in range(len(self.domains))]
         keys = []
 
@@ -183,11 +183,11 @@ class BeliefDbDataLoaders(BaseDataLoaders):
                 goal_lens[i].append(len(goal_row[d]))
 
         batch_size = len(ctx_lens)
-        vec_ctx_lens = np.array(ctx_lens) # (batch_size, ), number of turns
+        vec_ctx_lens = np.array(ctx_lens)  # (batch_size, ), number of turns
         max_ctx_len = np.max(vec_ctx_lens)
         vec_ctx_utts = np.zeros((batch_size, max_ctx_len, self.max_utt_len), dtype=np.int32)
-        vec_out_bs = np.array(out_bs) # (batch_size, 94)
-        vec_out_db = np.array(out_db) # (batch_size, 30)
+        vec_out_bs = np.array(out_bs)  # (batch_size, 94)
+        vec_out_db = np.array(out_db)  # (batch_size, 30)
         vec_out_lens = np.array(out_lens)  # (batch_size, ), number of tokens
         max_out_len = np.max(vec_out_lens)
         vec_out_utts = np.zeros((batch_size, max_out_len), dtype=np.int32)
@@ -205,11 +205,11 @@ class BeliefDbDataLoaders(BaseDataLoaders):
             for i, d in enumerate(self.domains):
                 vec_goals_list[i][b_id, :] = goals[b_id][d]
 
-        return Pack(context_lens=vec_ctx_lens, # (batch_size, )
-                    contexts=vec_ctx_utts, # (batch_size, max_ctx_len, max_utt_len)
-                    output_lens=vec_out_lens, # (batch_size, )
-                    outputs=vec_out_utts, # (batch_size, max_out_len)
-                    bs=vec_out_bs, # (batch_size, 94)
-                    db=vec_out_db, # (batch_size, 30)
-                    goals_list=vec_goals_list, # 7*(batch_size, bow_len), bow_len differs w.r.t. domain
+        return Pack(context_lens=vec_ctx_lens,  # (batch_size, )
+                    contexts=vec_ctx_utts,  # (batch_size, max_ctx_len, max_utt_len)
+                    output_lens=vec_out_lens,  # (batch_size, )
+                    outputs=vec_out_utts,  # (batch_size, max_out_len)
+                    bs=vec_out_bs,  # (batch_size, 94)
+                    db=vec_out_db,  # (batch_size, 30)
+                    goals_list=vec_goals_list,  # 7*(batch_size, bow_len), bow_len differs w.r.t. domain
                     keys=keys)

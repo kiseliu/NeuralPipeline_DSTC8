@@ -5,6 +5,7 @@ The policy base class for user bot.
 
 class UserPolicy:
     """Base model for user policy model."""
+
     def __init__(self):
         """ Constructor for UserPolicy class. """
         pass

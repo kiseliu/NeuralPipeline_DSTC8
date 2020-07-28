@@ -37,12 +37,12 @@ class SVMNLU(NLU):
         sentinfo = {
             "turn-id": 0,
             "asr-hyps": [
-                    {
-                        "asr-hyp": utterance,
-                        "score": 0
-                    }
-                ]
-            }
+                {
+                    "asr-hyp": utterance,
+                    "score": 0
+                }
+            ]
+        }
         slu_hyps = self.c.decode_sent(sentinfo, self.config.get("decode", "output"))
         if not_empty:
             act_list = []
@@ -55,15 +55,16 @@ class SVMNLU(NLU):
         dialog_act = {}
         for act in act_list:
             intent = act['act']
-            if intent=='request':
+            if intent == 'request':
                 domain, slot = act['slots'][0][1].split('-')
-                intent = domain+'-'+intent.capitalize()
-                dialog_act.setdefault(intent,[])
-                dialog_act[intent].append([slot,'?'])
+                intent = domain + '-' + intent.capitalize()
+                dialog_act.setdefault(intent, [])
+                dialog_act[intent].append([slot, '?'])
             else:
                 dialog_act.setdefault(intent, [])
                 dialog_act[intent].append(act['slots'][0])
         return dialog_act
+
 
 if __name__ == "__main__":
     nlu = SVMNLU()

@@ -9,6 +9,7 @@ from convlab.modules.word_dst.multiwoz.mdbt import MDBTTracker
 
 class Word_DST:
     """A temporary semi-finishingv agent for word_dst testing, which takes as input utterances and output dialog state."""
+
     def __init__(self):
         self.dst = MDBTTracker(data_dir='../../../../data/mdbt')
         self.nlu = None
@@ -29,6 +30,7 @@ class Word_DST:
 
     def reset(self):
         self.dst.init_session()
+
 
 def load_data(path='../../../../data/multiwoz/test.json'):
     """Load data (mainly for testing data)."""
@@ -52,6 +54,7 @@ def load_data(path='../../../../data/multiwoz/test.json'):
         result.append([session_data, goal])
     return result
 
+
 def run_test():
     agent = Word_DST()
     agent.reset()
@@ -67,8 +70,10 @@ def run_test():
         agent.reset()
     return test_result
 
+
 class ResultStat:
     """A functional class for accuracy statistic."""
+
     def __init__(self):
         self.stat = {}
 
@@ -89,7 +94,7 @@ class ResultStat:
         for _, r in domain_stat.items():
             ret[0] += r[0]
             ret[1] += r[1]
-        return ret[0]/(ret[1] + 1e-10)
+        return ret[0] / (ret[1] + 1e-10)
 
     def slot_acc(self, domain, slot):
         slot_stat = self.stat[domain][slot]
@@ -101,8 +106,9 @@ class ResultStat:
             acc_result[domain] = {}
             acc_result[domain]['acc'] = self.domain_acc(domain)
             for slot in self.stat[domain]:
-                acc_result[domain][slot+'_acc'] = self.slot_acc(domain, slot)
+                acc_result[domain][slot + '_acc'] = self.slot_acc(domain, slot)
         return json.dumps(acc_result, indent=4)
+
 
 def evaluate(test_result):
     stat = ResultStat()
@@ -112,7 +118,7 @@ def evaluate(test_result):
         for golden_state, pred_state in session:  # session
             last_pred_state = pred_state
             domains = golden_state.keys()
-            for domain in domains:   # domain
+            for domain in domains:  # domain
                 if domain == 'bus':
                     continue
                 assert domain in pred_state, 'domain: {}'.format(domain)
@@ -132,10 +138,12 @@ def evaluate(test_result):
     print(stat.all_acc())
     print('session-level acc: {}'.format(convert2acc(session_level[0], session_level[1])))
 
+
 def convert2acc(a, b):
     if b == 0:
         return -1
-    return a/b
+    return a / b
+
 
 def match_goal(pred_state, goal):
     domains = pred_state.keys()
@@ -159,6 +167,7 @@ def match_goal(pred_state, goal):
                 return False
     return True
 
+
 def _is_empty(slot, domain_state):
     if slot not in domain_state:
         return True
@@ -166,6 +175,7 @@ def _is_empty(slot, domain_state):
     if value is None or value == "" or value == 'null':
         return True
     return False
+
 
 def _is_match(value1, value2):
     if not isinstance(value1, str) or not isinstance(value2, str):
@@ -178,6 +188,7 @@ def _is_match(value1, value2):
         return True
     return False
 
+
 def _fuzzy_match(value1, value2):
     if not isinstance(value1, str) or not isinstance(value2, str):
         return value1 == value2
@@ -189,6 +200,7 @@ def _fuzzy_match(value1, value2):
     if (len(value1) >= 10 and d <= 2) or (len(value1) >= 15 and d <= 3):
         return True
     return False
+
 
 if __name__ == '__main__':
     test_result = run_test()

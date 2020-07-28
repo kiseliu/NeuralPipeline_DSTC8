@@ -48,12 +48,12 @@ def get_woz_dataset(tokenizer, dataset_path, dataset_cache=None):
             for d in dialog_act:
                 tmp = []
                 for k in list(d.keys()):
-                    tmp.append('<'+k.lower()+'>')
-                    sn.add('<'+k.lower()+'>')
+                    tmp.append('<' + k.lower() + '>')
+                    sn.add('<' + k.lower() + '>')
                     for slot, value in d[k]:
-                        tmp.append('<'+slot.lower()+'>')
+                        tmp.append('<' + slot.lower() + '>')
                         tmp.append(value.lower())
-                        sn.add('<'+slot.lower()+'>')
+                        sn.add('<' + slot.lower() + '>')
 
                 bs.append(tmp)
             return bs, sn
@@ -69,14 +69,14 @@ def get_woz_dataset(tokenizer, dataset_path, dataset_cache=None):
                     tmp.append('')
                 else:
                     constraint = d[dom]
-                    tmp.append('<'+dom.lower()+'>')
+                    tmp.append('<' + dom.lower() + '>')
                     for b in constraint['book']:
-                         if b != 'booked':
-                             tmp.append('<' + b.lower() + '>')
-                             tmp.append(constraint['book'][b])
+                        if b != 'booked':
+                            tmp.append('<' + b.lower() + '>')
+                            tmp.append(constraint['book'][b])
                     for s in constraint['semi']:
                         v = constraint['semi'][s]
-                        tmp.append('<'+s.lower()+'>')
+                        tmp.append('<' + s.lower() + '>')
                         if v in ["dont care", "don't care", "do n't care", "dontcare"]:
                             tmp.append('<dc>')
                         elif v == 'not mentioned':
@@ -163,15 +163,16 @@ def get_woz_dataset(tokenizer, dataset_path, dataset_cache=None):
 
     return dataset
 
-def download_model_from_googledrive(file_id, dest_path):
 
+def download_model_from_googledrive(file_id, dest_path):
     gdd.download_file_from_google_drive(file_id=file_id, dest_path=dest_path, unzip=True)
+
 
 class AttrDict(dict):
     def __init__(self, *args, **kwargs):
         super(AttrDict, self).__init__(*args, **kwargs)
         self.__dict__ = self
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     download_model_from_googledrive('1FyL8nh3LmRIsWsYDR9pZvr0EKpWFrJ2G', './test')

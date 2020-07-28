@@ -213,7 +213,8 @@ class HydraMLPNet(Net, nn.Module):
             'polyak_coef',
             'gpu',
         ])
-        assert len(self.hid_layers) == 3, 'Your hidden layers must specify [*heads], [body], [*tails]. If not, use MLPNet'
+        assert len(
+            self.hid_layers) == 3, 'Your hidden layers must specify [*heads], [body], [*tails]. If not, use MLPNet'
         assert isinstance(self.in_dim, list), 'Hydra network needs in_dim as list'
         assert isinstance(self.out_dim, list), 'Hydra network needs out_dim as list'
         self.head_hid_layers = self.hid_layers[0]

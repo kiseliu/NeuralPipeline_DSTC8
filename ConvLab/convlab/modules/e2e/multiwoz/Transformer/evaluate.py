@@ -6,7 +6,7 @@ import json
 import torch.nn.functional as F
 import time
 import numpy as np
-from convlab.modules.e2e.multiwoz.Transformer.train import SPECIAL_TOKENS_V1, SPECIAL_TOKENS_V4,\
+from convlab.modules.e2e.multiwoz.Transformer.train import SPECIAL_TOKENS_V1, SPECIAL_TOKENS_V4, \
     build_input_from_segments_v1, build_input_from_segments_v2, act_name, slot_name
 from convlab.modules.util.multiwoz.dbquery import query
 from convlab.modules.e2e.multiwoz.Transformer.pytorch_transformers import GPT2DoubleHeadsModel, GPT2Tokenizer
@@ -17,14 +17,19 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 import seaborn
 from tqdm import tqdm
-DEFAULT_CUDA_DEVICE=-1
+
+DEFAULT_CUDA_DEVICE = -1
 DEFAULT_DIRECTORY = "models"
 
 SLOTS = ['hotel-pricerange', 'hotel-type', 'hotel-parking', 'hotel-book stay', 'hotel-book day', 'hotel-book people',
-         'hotel-area', 'hotel-stars', 'hotel-internet', 'train-destination', 'train-day', 'train-departure', 'train-arriveby',
-         'train-book people', 'train-leaveat', 'attraction-area', 'restaurant-food', 'restaurant-pricerange', 'restaurant-area',
-         'attraction-name', 'restaurant-name', 'attraction-type', 'hotel-name', 'taxi-leaveat', 'taxi-destination', 'taxi-departure',
+         'hotel-area', 'hotel-stars', 'hotel-internet', 'train-destination', 'train-day', 'train-departure',
+         'train-arriveby',
+         'train-book people', 'train-leaveat', 'attraction-area', 'restaurant-food', 'restaurant-pricerange',
+         'restaurant-area',
+         'attraction-name', 'restaurant-name', 'attraction-type', 'hotel-name', 'taxi-leaveat', 'taxi-destination',
+         'taxi-departure',
          'restaurant-book time', 'restaurant-book day', 'restaurant-book people', 'taxi-arriveby']
+
 
 class Transformer():
 
@@ -56,11 +61,12 @@ class Transformer():
         self.seed = seed
         self.domains = ['hotel', 'restaurant', 'train', 'taxi', 'attraction', 'police', 'hospital']
         self.cs_mapping = {'taxi': ['leaveat', 'destination', 'departure', 'arriveby'],
-                           'restaurant': ['book-time','book-day','book-people','food', 'pricerange', 'name', 'area'],
+                           'restaurant': ['book-time', 'book-day', 'book-people', 'food', 'pricerange', 'name', 'area'],
                            'hospital': ['department', 'phone'],
-                           'hotel': ['book-stay', 'book-day', 'book-people', 'name', 'area', 'parking', 'pricerange', 'stars', 'internet', 'type'],
+                           'hotel': ['book-stay', 'book-day', 'book-people', 'name', 'area', 'parking', 'pricerange',
+                                     'stars', 'internet', 'type'],
                            'attraction': ['type', 'name', 'area'],
-                           'train': ['book-people','leaveat', 'destination', 'day', 'arriveby', 'departure'],
+                           'train': ['book-people', 'leaveat', 'destination', 'day', 'arriveby', 'departure'],
                            'taxi': [],
                            'police': []}
         dia_act = open('./data/multiwoz/dialog_act_slot.txt', 'r')
@@ -113,7 +119,6 @@ class Transformer():
         self.count = 0
         self.reset()
 
-
     def sample_sequence_v4(self, history, current_output=None):
 
         special_tokens_id = self.tokenizer.convert_tokens_to_ids(self.SPECIAL_TOKENS)
@@ -146,7 +151,6 @@ class Transformer():
             logits, attentions = self.model(input_ids, token_type_ids=token_type_ids)
 
             if "gpt2" in self.model_name:
-
                 logits = logits[0]
 
             logits = logits[0, -1, :] / self.temperature
@@ -165,7 +169,6 @@ class Transformer():
                         break
                     prev = torch.multinomial(probs, num_samples=1)
                     b += 1
-
 
             if prev.item() in dptok:
 
@@ -199,7 +202,6 @@ class Transformer():
         self.prev_dom = self.cur_dom
         return self.cur_dom, cs_dict
 
-
     def decode(self, ids, skip_special_tokens=False):
 
         text = self.tokenizer.decode(ids, skip_special_tokens=skip_special_tokens)
@@ -231,7 +233,6 @@ class Transformer():
                     index_count += 2
         text = text.replace('  ', ' ')
         return text
-
 
     def convert_kb(self, kb_results):
 
@@ -337,7 +338,6 @@ def fix_general_label_error(labels, type, slots):
     #
     #     label_dict = dict(d)
 
-
     GENERAL_TYPO = {
         # type
         "guesthouse": "guest house", "guesthouses": "guest house", "guest": "guest house",
@@ -425,17 +425,18 @@ def convert_cs(cs_dict):
         for k in cs_dict[d].keys():
             if not cs_dict[d][k] in ['<nm>', '<nm> ', '']:
                 if 'book-' in k:
-                    ret.append(d + '-book ' + k.split('-')[-1]+'-'+cs_dict[d][k])
+                    ret.append(d + '-book ' + k.split('-')[-1] + '-' + cs_dict[d][k])
                 else:
                     ret.append(d + '-' + k + '-' + cs_dict[d][k])
 
     return ret
 
+
 def combine_dict(prev, dom, cs_dict):
     if prev == {}:
         return {dom: cs_dict}
     if '' in cs_dict.keys():
-        del(cs_dict[''])
+        del (cs_dict[''])
     if cs_dict == {}:
         return prev
     new = copy.deepcopy(prev)
@@ -452,10 +453,12 @@ def combine_dict(prev, dom, cs_dict):
 
     return new
 
+
 def run():
     parser = ArgumentParser()
     parser.add_argument("--model", type=str, default='gpt2-v4', help="Path, url or short name of the model")
-    parser.add_argument("--model_checkpoint", type=str, default='./models/v4_1', help="Path, url or short name of the model")
+    parser.add_argument("--model_checkpoint", type=str, default='./models/v4_1',
+                        help="Path, url or short name of the model")
     args = parser.parse_args()
 
     model = Transformer(model=args.model, model_checkpoint=args.model_checkpoint)
@@ -474,14 +477,13 @@ def run():
 
         for d in tqdm(test):
 
-
             id = d["dialogue_idx"]
             dia_dict = defaultdict(dict)
             history = []
             tmp = defaultdict(list)
             prev_dict = {}
             model.reset()
-            for i,dialogue in enumerate(d['dialogue']):
+            for i, dialogue in enumerate(d['dialogue']):
                 if dialogue['system_transcript'] != "":
                     history.append(dialogue['system_transcript'])
                 history.append(dialogue["transcript"])
@@ -489,11 +491,8 @@ def run():
                 prev_dict = combine_dict(prev_dict, dom, cs_d)
                 tmp["pred_bs_ptr"] = convert_cs(prev_dict)
                 turn_dict = fix_general_label_error(dialogue["belief_state"], False, SLOTS)
-                tmp["turn_belief"] = [str(k)+'-'+str(v) for k, v in turn_dict.items()]
+                tmp["turn_belief"] = [str(k) + '-' + str(v) for k, v in turn_dict.items()]
                 dia_dict[str(i)] = copy.deepcopy(tmp)
-
-
-
 
             all_prediction[id] = dia_dict
 

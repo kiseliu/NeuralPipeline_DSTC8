@@ -5,6 +5,7 @@ from convlab.modules.word_policy.multiwoz.larl.latent_dialog import evaluators
 
 class Dialog(object):
     """Dialogue runner."""
+
     def __init__(self, agents, args):
         assert len(agents) == 2
         self.agents = agents
@@ -61,7 +62,7 @@ class Dialog(object):
         while True:
             nturn += 1
             # produce an utterance
-            out_words = writer.write() # out: list of word, str, len = max_words
+            out_words = writer.write()  # out: list of word, str, len = max_words
             print('\t{} out_words = {}'.format(writer.name, ' '.join(out_words)))
 
             self.metrics.record('sent_len', len(out_words))
@@ -90,9 +91,9 @@ class Dialog(object):
         self.metrics.record('dialog_len', len(conv))
         self.metrics.record('reward', int(reward))
 
-        print('='*50)
+        print('=' * 50)
         print(self.show_metrics())
-        print('='*50)
+        print('=' * 50)
         return conv, reward
 
 

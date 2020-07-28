@@ -30,13 +30,16 @@ parser.add_argument('--dropout', type=float, default=0.0)
 parser.add_argument('--use_emb', type=str, default='False')
 
 parser.add_argument('--beam_width', type=int, default=10, help='Beam width used in beamsearch')
-parser.add_argument('--write_n_best', type=util.str2bool, nargs='?', const=True, default=False, help='Write n-best list (n=beam_width)')
+parser.add_argument('--write_n_best', type=util.str2bool, nargs='?', const=True, default=False,
+                    help='Write n-best list (n=beam_width)')
 
-parser.add_argument('--model_path', type=str, default='model/model/translate.ckpt', help='Path to a specific model checkpoint.')
+parser.add_argument('--model_path', type=str, default='model/model/translate.ckpt',
+                    help='Path to a specific model checkpoint.')
 parser.add_argument('--model_dir', type=str, default='model/')
 parser.add_argument('--model_name', type=str, default='translate.ckpt')
 
-parser.add_argument('--valid_output', type=str, default='model/data/val_dials/', help='Validation Decoding output dir path')
+parser.add_argument('--valid_output', type=str, default='model/data/val_dials/',
+                    help='Validation Decoding output dir path')
 parser.add_argument('--decode_output', type=str, default='model/data/test_dials/', help='Decoding output dir path')
 
 args = parser.parse_args()
@@ -116,8 +119,12 @@ def decode(num=1):
         val_dials_gen = {}
         valid_loss = 0
         for name, val_file in val_dials.items():
-            input_tensor = [];  target_tensor = [];bs_tensor = [];db_tensor = []
-            input_tensor, target_tensor, bs_tensor, db_tensor = util.loadDialogue(model, val_file, input_tensor, target_tensor, bs_tensor, db_tensor)
+            input_tensor = [];
+            target_tensor = [];
+            bs_tensor = [];
+            db_tensor = []
+            input_tensor, target_tensor, bs_tensor, db_tensor = util.loadDialogue(model, val_file, input_tensor,
+                                                                                  target_tensor, bs_tensor, db_tensor)
             # create an empty matrix with padding tokens
             input_tensor, input_lengths = util.padSequence(input_tensor)
             target_tensor, target_lengths = util.padSequence(target_tensor)
@@ -146,8 +153,12 @@ def decode(num=1):
         test_dials_gen = {}
         test_loss = 0
         for name, test_file in test_dials.items():
-            input_tensor = [];  target_tensor = [];bs_tensor = [];db_tensor = []
-            input_tensor, target_tensor, bs_tensor, db_tensor = util.loadDialogue(model, test_file, input_tensor, target_tensor, bs_tensor, db_tensor)
+            input_tensor = [];
+            target_tensor = [];
+            bs_tensor = [];
+            db_tensor = []
+            input_tensor, target_tensor, bs_tensor, db_tensor = util.loadDialogue(model, test_file, input_tensor,
+                                                                                  target_tensor, bs_tensor, db_tensor)
             # create an empty matrix with padding tokens
             input_tensor, input_lengths = util.padSequence(input_tensor)
             target_tensor, target_lengths = util.padSequence(target_tensor)
@@ -158,7 +169,6 @@ def decode(num=1):
                                                         db_tensor, bs_tensor)
             test_loss += 0
             test_dials_gen[name] = output_words
-
 
         test_loss /= len(test_dials)
         print('Current TEST LOSS:', test_loss)
@@ -193,6 +203,7 @@ def decodeWrapper():
             raise
 
         args.model_path = args.original
+
 
 if __name__ == '__main__':
     decodeWrapper()

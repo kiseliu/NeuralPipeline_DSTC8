@@ -1,5 +1,6 @@
 import pprint
 import sys
+
 sys.path.append('/root/NeuralDialog-LaRL')
 import logging
 import torch as th
@@ -18,7 +19,6 @@ from numpy import array
 import torch
 
 from convlab.modules.word_policy.multiwoz.larl.latent_dialog.corpora import EOS, PAD
-
 
 domain_name = 'object_division'
 domain_info = domain.get_domain(domain_name)
@@ -86,7 +86,7 @@ if config.forward_only:
     config['forward_only'] = True
 else:
     saved_path = os.path.join(
-        stats_path, start_time+'-'+os.path.basename(__file__).split('.')[0])
+        stats_path, start_time + '-' + os.path.basename(__file__).split('.')[0])
     if not os.path.exists(saved_path):
         os.makedirs(saved_path)
 config.saved_path = saved_path
@@ -114,7 +114,6 @@ model = SysPerfectBD2Cat(corpus, config)
 if config.use_gpu:
     model.cuda()
 
-
 if config.use_gpu:
     model.load_state_dict(torch.load(
         '/root/NeuralDialog-LaRL/larl_model/best-model'))
@@ -135,25 +134,26 @@ data_feed = {'bs': array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0,
                  1, 0, 0, 1, 0, 0
              ]]),
-             'contexts': array([[[4,   1,   6,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                                  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                                  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                                  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                                  0,   0],
-                                 [4,   1,  27,  16, 153,  40,  49,   8,   6,   0,   0,   0,
-                                  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                                  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                                  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                                  0,   0]]], dtype=int),
+             'contexts': array([[[4, 1, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                  0, 0],
+                                 [4, 1, 27, 16, 153, 40, 49, 8, 6, 0, 0, 0,
+                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                  0, 0]]], dtype=int),
              'db': array([[0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0.,
                            0., 1., 0., 0., 0., 0., 0., 1., 1., 0., 1., 0., 1., 0.]])}
 model.eval()
 outputs, labels = model(data_feed, mode='gen', clf=False,
-                         gen_type='greedy', use_py=None, return_latent=False)
+                        gen_type='greedy', use_py=None, return_latent=False)
 
 pprint.pprint(outputs)
 
 import numpy as np
+
 pred_labels = [t.cpu().data.numpy() for t in outputs['sequence']]
 pred_labels = np.array(pred_labels, dtype=int).squeeze(-1).swapaxes(0, 1)  # (batch_size, max_dec_len)
 true_labels = labels.data.numpy()  # (batch_size, output_seq_len)
@@ -170,6 +170,7 @@ def get_sent(vocab, de_tknize, data, b_id, stop_eos=True, stop_pad=True):
             ws.append(w)
 
     return de_tknize(ws)
+
 
 de_tknize = lambda x: ' '.join(x)
 

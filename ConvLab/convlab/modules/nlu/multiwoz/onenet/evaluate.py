@@ -18,10 +18,9 @@ from allennlp.data.iterators import DataIterator
 from allennlp.models.archival import load_archive
 from allennlp.training.util import evaluate
 
-from convlab.modules.nlu.multiwoz.onenet import dataset_reader, model 
+from convlab.modules.nlu.multiwoz.onenet import dataset_reader, model
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
-
 
 argparser = argparse.ArgumentParser(description="Evaluate the specified model + dataset.")
 argparser.add_argument('archive_file', type=str, help='path to an archived trained model')
@@ -31,39 +30,39 @@ argparser.add_argument('input_file', type=str, help='path to the file containing
 argparser.add_argument('--output-file', type=str, help='path to output file')
 
 argparser.add_argument('--weights-file',
-                        type=str,
-                        help='a path that overrides which weights file to use')
+                       type=str,
+                       help='a path that overrides which weights file to use')
 
 cuda_device = argparser.add_mutually_exclusive_group(required=False)
 cuda_device.add_argument('--cuda-device',
-                            type=int,
-                            default=-1,
-                            help='id of GPU to use (if any)')
+                         type=int,
+                         default=-1,
+                         help='id of GPU to use (if any)')
 
 argparser.add_argument('-o', '--overrides',
-                        type=str,
-                        default="",
-                        help='a JSON structure used to override the experiment configuration')
+                       type=str,
+                       default="",
+                       help='a JSON structure used to override the experiment configuration')
 
 argparser.add_argument('--batch-weight-key',
-                        type=str,
-                        default="",
-                        help='If non-empty, name of metric used to weight the loss on a per-batch basis.')
+                       type=str,
+                       default="",
+                       help='If non-empty, name of metric used to weight the loss on a per-batch basis.')
 
 argparser.add_argument('--extend-vocab',
-                        action='store_true',
-                        default=False,
-                        help='if specified, we will use the instances in your new dataset to '
+                       action='store_true',
+                       default=False,
+                       help='if specified, we will use the instances in your new dataset to '
                             'extend your vocabulary. If pretrained-file was used to initialize '
                             'embedding layers, you may also need to pass --embedding-sources-mapping.')
 
 argparser.add_argument('--embedding-sources-mapping',
-                        type=str,
-                        default="",
-                        help='a JSON dict defining mapping from embedding module path to embedding'
-                        'pretrained-file used during training. If not passed, and embedding needs to be '
-                        'extended, we will try to use the original file paths used during training. If '
-                        'they are not available we will use random vectors for embedding extension.')
+                       type=str,
+                       default="",
+                       help='a JSON dict defining mapping from embedding module path to embedding'
+                            'pretrained-file used during training. If not passed, and embedding needs to be '
+                            'extended, we will try to use the original file paths used during training. If '
+                            'they are not available we will use random vectors for embedding extension.')
 
 
 def evaluate_from_args(args: argparse.Namespace) -> Dict[str, Any]:

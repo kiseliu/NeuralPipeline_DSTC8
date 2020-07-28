@@ -32,6 +32,8 @@ if args["load_embedding"]:
     print("[Warning] Using hidden size = 400 for pretrained word embedding (300 + 100)...")
 
 replacements = []
+
+
 class TRADE(nn.Module):
     def __init__(self, hidden_size, lang, path, task, lr, dropout, slots, gating_dict, nb_train_vocab=0):
         super(TRADE, self).__init__()
@@ -235,7 +237,7 @@ class TRADE(nn.Module):
                                 slot_temp[si] + "-" + str(st))
 
                 all_prediction[data_dev["ID"][bi]][data_dev["turn_id"]
-                                                   [bi]]["pred_bs_ptr"] = predict_belief_bsz_ptr
+                [bi]]["pred_bs_ptr"] = predict_belief_bsz_ptr
 
                 if set(data_dev["turn_belief"][bi]) != set(predict_belief_bsz_ptr) and args["genSample"]:
                     print("True", set(data_dev["turn_belief"][bi]))
@@ -327,14 +329,14 @@ class TRADE(nn.Module):
             precision = TP / float(TP + FP) if (TP + FP) != 0 else 0
             recall = TP / float(TP + FN) if (TP + FN) != 0 else 0
             F1 = 2 * precision * recall / \
-                float(precision + recall) if (precision + recall) != 0 else 0
+                 float(precision + recall) if (precision + recall) != 0 else 0
         else:
             if len(pred) == 0:
                 precision, recall, F1, count = 1, 1, 1, 1
             else:
                 precision, recall, F1, count = 0, 0, 0, 1
         return F1, recall, precision, count
-    
+
     def read_replacements(self):
         mapping_pair_url = os.path.join(self.data_dir, 'mapping.pair')
         fin_mapping_pair = open(mapping_pair_url, 'r')
@@ -391,7 +393,7 @@ class EncoderRNN(nn.Module):
                 outputs, batch_first=False)
         hidden = hidden[0] + hidden[1]
         outputs = outputs[:, :, :self.hidden_size] + \
-            outputs[:, :, self.hidden_size:]
+                  outputs[:, :, self.hidden_size:]
         return outputs.transpose(0, 1), hidden.unsqueeze(0)
 
 
@@ -480,7 +482,7 @@ class Generator(nn.Module):
                     p_context_ptr = p_context_ptr.cuda()
                 p_context_ptr.scatter_add_(1, story, prob)
                 final_p_vocab = (1 - vocab_pointer_switches).expand_as(p_context_ptr) * p_context_ptr + \
-                    vocab_pointer_switches.expand_as(p_context_ptr) * p_vocab
+                                vocab_pointer_switches.expand_as(p_context_ptr) * p_vocab
                 pred_word = torch.argmax(final_p_vocab, dim=1)
                 words.append([self.lang.index2word[w_idx.item()]
                               for w_idx in pred_word])
@@ -642,7 +644,7 @@ def masked_coverage_loss(coverage, attention, length):
     min_ = torch.min(coverage, attention)
     mask = mask.unsqueeze(2).expand_as(min_)
     min_ = min_ * mask.float()
-    loss = min_.sum() / (len(length)*1.0)
+    loss = min_.sum() / (len(length) * 1.0)
     return loss
 
 
@@ -662,7 +664,7 @@ def masked_cross_entropy_for_slot(logits, target, mask, use_softmax=True):
     losses_flat = -torch.gather(log_probs_flat, dim=1, index=target_flat)
     losses = losses_flat.view(*target.size())  # b * |s|
     losses = losses * mask.float()
-    loss = losses.sum() / (losses.size(0)*losses.size(1))
+    loss = losses.sum() / (losses.size(0) * losses.size(1))
     # print("loss inside", loss)
     return loss
 

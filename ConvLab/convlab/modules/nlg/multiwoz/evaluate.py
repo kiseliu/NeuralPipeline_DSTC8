@@ -63,44 +63,44 @@ def get_err_slot(dialog_acts, nlg_model):
     errs = []
     N_total, p_total, q_total = 0, 0, 0
     for i, das in enumerate(dialog_acts):
-        print('[%d/%d]'% (i+1,len(dialog_acts)))
+        print('[%d/%d]' % (i + 1, len(dialog_acts)))
         gen = nlg_model.generate_slots(das)
         triples = []
         counter = {}
         for da in das:
             if 'Request' in da or 'general' in da:
                 continue
-            for s,v in das[da]:
+            for s, v in das[da]:
                 if s == 'Internet' or s == 'Parking' or s == 'none' or v == 'none':
-                        continue
-                slot = da.lower()+'-'+s.lower()
-                counter.setdefault(slot,0)
+                    continue
+                slot = da.lower() + '-' + s.lower()
+                counter.setdefault(slot, 0)
                 counter[slot] += 1
-                triples.append(slot+'-'+str(counter[slot]))
-        assert len(set(triples))==len(triples)
-        assert len(set(gen))==len(gen)
+                triples.append(slot + '-' + str(counter[slot]))
+        assert len(set(triples)) == len(triples)
+        assert len(set(gen)) == len(gen)
         N = len(triples)
-        p = len(set(triples)-set(gen))
-        q = len(set(gen)-set(triples))
+        p = len(set(triples) - set(gen))
+        q = len(set(gen) - set(triples))
         # print(triples)
         # print(gen)
-        N_total+=N
-        p_total+=p
-        q_total+=q
-        if N>0:
-            err = (p+q)*1.0/N
+        N_total += N
+        p_total += p
+        q_total += q
+        if N > 0:
+            err = (p + q) * 1.0 / N
             print(err)
             errs.append(err)
         # else:
-            # assert q==0
-        print('mean(std): {}({})'.format(np.mean(errs),np.std(errs)))
-        if N_total>0:
-            print('divide after sum:', (p_total+q_total)/N_total)
+        # assert q==0
+        print('mean(std): {}({})'.format(np.mean(errs), np.std(errs)))
+        if N_total > 0:
+            print('divide after sum:', (p_total + q_total) / N_total)
     return np.mean(errs)
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2 :
+    if len(sys.argv) != 2:
         print("usage:")
         print("\t python evaluate.py model_name")
         print("\t model_name=SCLSTM or MultiwozTemplateNLG")
@@ -123,7 +123,7 @@ if __name__ == '__main__':
 
     sess_num = 0
     for no, sess in list(test_data.items()):
-        sess_num+=1
+        sess_num += 1
         print('[%d/%d]' % (sess_num, len(test_data)))
         for i, turn in enumerate(sess['log']):
             if i % 2 == 0:

@@ -121,15 +121,3 @@ def dump_latent(model, data, config):
                                                'attns': attns[b_id] if attns is not None else None})
     latent_results = dict(latent_results)
     return latent_results
-
-
-
-
-
-
-
-
-
-
-
-

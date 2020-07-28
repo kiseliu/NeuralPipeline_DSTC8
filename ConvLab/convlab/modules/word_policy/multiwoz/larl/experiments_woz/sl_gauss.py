@@ -13,9 +13,8 @@ import convlab.modules.word_policy.multiwoz.larl.latent_dialog.domain as domain
 from dialog_utils import task_generate
 import pickle as pkl
 
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
-
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 domain_name = 'object_division'
 domain_info = domain.get_domain(domain_name)
@@ -51,12 +50,12 @@ config = Pack(
     # must be same as ctx_cell_size due to the passed initial state
     dec_attn_mode='cat',
     y_size=200,
-    beta = 0.01,
+    beta=0.01,
     simple_posterior=False,
-    use_pr = True,
+    use_pr=True,
     #
     beam_size=20,
-    fix_batch = True,
+    fix_batch=True,
     fix_train_batch=False,
     avg_type='word',
     print_step=300,
@@ -80,7 +79,7 @@ if config.forward_only:
     config = Pack(json.load(open(os.path.join(saved_path, 'config.json'))))
     config['forward_only'] = True
 else:
-    saved_path = os.path.join(stats_path, start_time+'-'+os.path.basename(__file__).split('.')[0])
+    saved_path = os.path.join(stats_path, start_time + '-' + os.path.basename(__file__).split('.')[0])
     if not os.path.exists(saved_path):
         os.makedirs(saved_path)
 config.saved_path = saved_path

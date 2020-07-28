@@ -14,7 +14,9 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.client import device_lib
 
-DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))), 'data/mdbt')
+DATA_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))),
+    'data/mdbt')
 VALIDATION_URL = os.path.join(DATA_PATH, "data/validate.json")
 WORD_VECTORS_URL = os.path.join(DATA_PATH, "word-vectors/paragram_300_sl999.txt")
 TRAINING_URL = os.path.join(DATA_PATH, "data/train.json")
@@ -24,16 +26,16 @@ MODEL_URL = os.path.join(DATA_PATH, "models/model-1")
 GRAPH_URL = os.path.join(DATA_PATH, "graphs/graph-1")
 RESULTS_URL = os.path.join(DATA_PATH, "results/log-1.txt")
 
-#ROOT_URL = '../../data/mdbt'
+# ROOT_URL = '../../data/mdbt'
 
-#VALIDATION_URL = "./data/mdbt/data/validate.json"
-#WORD_VECTORS_URL = "./data/mdbt/word-vectors/paragram_300_sl999.txt"
-#TRAINING_URL = "./data/mdbt/data/train.json"
-#ONTOLOGY_URL = "./data/mdbt/data/ontology.json"
-#TESTING_URL = "./data/mdbt/data/test.json"
-#MODEL_URL = "./data/mdbt/models/model-1"
-#GRAPH_URL = "./data/mdbt/graphs/graph-1"
-#RESULTS_URL = "./data/mdbt/results/log-1.txt"
+# VALIDATION_URL = "./data/mdbt/data/validate.json"
+# WORD_VECTORS_URL = "./data/mdbt/word-vectors/paragram_300_sl999.txt"
+# TRAINING_URL = "./data/mdbt/data/train.json"
+# ONTOLOGY_URL = "./data/mdbt/data/ontology.json"
+# TESTING_URL = "./data/mdbt/data/test.json"
+# MODEL_URL = "./data/mdbt/models/model-1"
+# GRAPH_URL = "./data/mdbt/graphs/graph-1"
+# RESULTS_URL = "./data/mdbt/results/log-1.txt"
 
 
 domains = ['restaurant', 'hotel', 'attraction', 'train', 'taxi']
@@ -218,7 +220,8 @@ def model_definition(ontology, num_slots, slots, num_hidden=None, net_type=None,
         # print("\tMDBT: Setting up type of the recurrent network to bidirectional {}...........................".format(bidir))
     if num_hidden:
         lstm_num_hidden = num_hidden
-        print("\tMDBT: Setting up type of the dimension of the hidden space to {}.........................".format(num_hidden))
+        print("\tMDBT: Setting up type of the dimension of the hidden space to {}.........................".format(
+            num_hidden))
 
     ontology = tf.constant(ontology, dtype=tf.float32)
 
@@ -553,14 +556,13 @@ def get_metrics(predictions, true_predictions, no_turns, mask, num_slots):
     return precision, recall, f_score, accuracy
 
 
-
 # main.py
 def normalise_word_vectors(word_vectors, norm=1.0):
     """
     This method normalises the collection of word vectors provided in the word_vectors dictionary.
     """
     for word in word_vectors:
-        word_vectors[word] /= math.sqrt(sum(word_vectors[word]**2) + 1e-6)
+        word_vectors[word] /= math.sqrt(sum(word_vectors[word] ** 2) + 1e-6)
         word_vectors[word] *= norm
     return word_vectors
 
@@ -571,17 +573,19 @@ def xavier_vector(word, D=300):
 
     We hash the word to always get the same vector for the given word.
     """
+
     def hash_string(_s):
         return abs(hash(_s)) % (10 ** 8)
+
     seed_value = hash_string(word)
     np.random.seed(seed_value)
 
-    neg_value = - math.sqrt(6)/math.sqrt(D)
-    pos_value = math.sqrt(6)/math.sqrt(D)
+    neg_value = - math.sqrt(6) / math.sqrt(D)
+    pos_value = math.sqrt(6) / math.sqrt(D)
 
     rsample = np.random.uniform(low=neg_value, high=pos_value, size=(D,))
     norm = np.linalg.norm(rsample)
-    rsample_normed = rsample/norm
+    rsample_normed = rsample / norm
 
     return rsample_normed
 
@@ -607,7 +611,7 @@ def load_ontology(url, word_vectors):
         values = data[slots]
         if "book" in slot:
             [slot, value] = slot.split(" ")
-            booking_slots[domain+'-'+value] = values
+            booking_slots[domain + '-' + value] = values
             values = [value]
         elif slot == "departure" or slot == "destination":
             values = ["place"]
@@ -615,8 +619,8 @@ def load_ontology(url, word_vectors):
         if domain not in word_vectors:
             word_vectors[domain.replace(" ", "")] = domain_vec
         slot_vec = np.sum(process_text(slot, word_vectors), axis=0)
-        if domain+'-'+slot not in slots_values:
-            slots_values.append(domain+'-'+slot)
+        if domain + '-' + slot not in slots_values:
+            slots_values.append(domain + '-' + slot)
         if slot not in word_vectors:
             word_vectors[slot.replace(" ", "")] = slot_vec
         slot_values.append(len(values))
@@ -712,7 +716,7 @@ def track_dialogue(data, ontology, predictions, y):
             joint_accuracy_total += 1
 
         dialogues.append(turns)
-    return dialogues, overall_accuracy_corr/overall_accuracy_total, joint_accuracy_corr/joint_accuracy_total
+    return dialogues, overall_accuracy_corr / overall_accuracy_total, joint_accuracy_corr / joint_accuracy_total
 
 
 def process_booking(ontolog_term, usr_input, previous_terms):
@@ -720,7 +724,7 @@ def process_booking(ontolog_term, usr_input, previous_terms):
     domain, slot, value = ontolog_term.split('-')
     if slot == 'book':
         for term in previous_terms:
-            if domain+'-book '+value in term:
+            if domain + '-book ' + value in term:
                 ontolog_term = term
                 break
         else:
@@ -730,7 +734,7 @@ def process_booking(ontolog_term, usr_input, previous_terms):
                     ontolog_term = domain + '-' + slot + ' ' + value + '-' + str(numbers[0])
                 elif len(numbers) == 2:
                     vals = {}
-                    if usr_input[usr_input.index(str(numbers[0]))+1] in ['people', 'person']:
+                    if usr_input[usr_input.index(str(numbers[0])) + 1] in ['people', 'person']:
                         vals['people'] = str(numbers[0])
                         vals['stay'] = str(numbers[1])
                     else:
@@ -738,7 +742,7 @@ def process_booking(ontolog_term, usr_input, previous_terms):
                         vals['stay'] = str(numbers[0])
                     ontolog_term = domain + '-' + slot + ' ' + value + '-' + vals[value]
             else:
-                for val in booking_slots[domain+'-'+value]:
+                for val in booking_slots[domain + '-' + value]:
                     if val in ' '.join(usr_input):
                         ontolog_term = domain + '-' + slot + ' ' + value + '-' + val
                         break
@@ -907,13 +911,13 @@ def process_text(text, word_vectors, ontology=None, print_mode=False):
     '''
     text = text.replace("(", "").replace(")", "").replace('"', "").replace(u"’", "'").replace(u"‘", "'")
     text = text.replace("\t", "").replace("\n", "").replace("\r", "").strip().lower()
-    text = text.replace(',', ' ').replace('.', ' ').replace('?', ' ').replace('-', ' ').replace('/', ' / ')\
+    text = text.replace(',', ' ').replace('.', ' ').replace('?', ' ').replace('-', ' ').replace('/', ' / ') \
         .replace(':', ' ')
     if ontology:
         for slot in ontology:
             [domain, slot, value] = slot.split('-')
-            text.replace(domain, domain.replace(" ", ""))\
-                .replace(slot, slot.replace(" ", ""))\
+            text.replace(domain, domain.replace(" ", "")) \
+                .replace(slot, slot.replace(" ", "")) \
                 .replace(value, value.replace(" ", ""))
 
     words = text.split()
@@ -958,7 +962,7 @@ def generate_batch(dialogues, batch_no, batch_size, ontology_size):
     sys_uttr_len = np.zeros((batch_size, max_no_turns), dtype='int32')
     no_turns = np.zeros(batch_size, dtype='int32')
     idx = 0
-    for i in range(batch_no*train_batch_size, batch_no*train_batch_size + batch_size):
+    for i in range(batch_no * train_batch_size, batch_no * train_batch_size + batch_size):
         (num_turns, user_vecs, sys_vecs, turn_labels, turn_domain_labels) = dialogues[i]
         no_turns[idx] = num_turns
         for j in range(num_turns):
@@ -973,7 +977,6 @@ def generate_batch(dialogues, batch_no, batch_size, ontology_size):
 
 
 def evaluate_model(sess, model_variables, val_data, summary, batch_id, i):
-
     '''
     Evaluate the model against validation set
     :param sess: training session
@@ -989,7 +992,7 @@ def evaluate_model(sess, model_variables, val_data, summary, batch_id, i):
      slot_accuracy, value_accuracy, value_f1, train_step, keep_prob, _, _, _) = model_variables
 
     batch_user, batch_sys, batch_labels, batch_domain_labels, batch_user_uttr_len, batch_sys_uttr_len, \
-        batch_no_turns = val_data
+    batch_no_turns = val_data
 
     start_time = time.time()
 
@@ -997,14 +1000,17 @@ def evaluate_model(sess, model_variables, val_data, summary, batch_id, i):
     [precision, recall, value_f1] = value_f1
     [d_acc, s_acc, v_acc, f1_score, pr, re, sm1, sm2] = sess.run([domain_accuracy, slot_accuracy, value_accuracy,
                                                                   value_f1, precision, recall] + summary,
-                                                           feed_dict={user: batch_user[i:i+b_z, :, :, :],
-                                                                      sys_res: batch_sys[i:i+b_z, :, :, :],
-                                                                      labels: batch_labels[i:i+b_z, :, :],
-                                                                      domain_labels: batch_domain_labels[i:i+b_z, :, :],
-                                                                      user_uttr_len: batch_user_uttr_len[i:i+b_z, :],
-                                                                      sys_uttr_len: batch_sys_uttr_len[i:i+b_z, :],
-                                                                      no_turns: batch_no_turns[i:i+b_z],
-                                                                      keep_prob: 1.0})
+                                                                 feed_dict={user: batch_user[i:i + b_z, :, :, :],
+                                                                            sys_res: batch_sys[i:i + b_z, :, :, :],
+                                                                            labels: batch_labels[i:i + b_z, :, :],
+                                                                            domain_labels: batch_domain_labels[
+                                                                                           i:i + b_z, :, :],
+                                                                            user_uttr_len: batch_user_uttr_len[
+                                                                                           i:i + b_z, :],
+                                                                            sys_uttr_len: batch_sys_uttr_len[i:i + b_z,
+                                                                                          :],
+                                                                            no_turns: batch_no_turns[i:i + b_z],
+                                                                            keep_prob: 1.0})
 
     print("Batch", batch_id, "[Domain Accuracy] = ", d_acc, "[Slot Accuracy] = ", s_acc, "[Value Accuracy] = ",
           v_acc, "[F1 Score] = ", f1_score, "[Precision] = ", pr, "[Recall] = ", re,

@@ -27,7 +27,11 @@ class NormMultiWozCorpus(object):
     def __init__(self, config):
         self.bs_size = 94
         self.db_size = 30
-        self.bs_types =['b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b', 'b', 'b', 'b', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b', 'b', 'c', 'c', 'c', 'b', 'b', 'b', 'b', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b', 'b', 'b', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b', 'b', 'b']
+        self.bs_types = ['b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b', 'b', 'b', 'b', 'b', 'c',
+                         'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b', 'b', 'c', 'c', 'c', 'b', 'b', 'b',
+                         'b', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c',
+                         'c', 'c', 'c', 'c', 'b', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b', 'b', 'b', 'b',
+                         'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b', 'b', 'b']
         self.domains = ['hotel', 'restaurant', 'train', 'attraction', 'hospital', 'police', 'taxi']
         self.info_types = ['book', 'fail_book', 'fail_info', 'info', 'reqt']
         self.config = config
@@ -49,7 +53,7 @@ class NormMultiWozCorpus(object):
         all_dlg_lens = []
 
         for key, raw_dlg in data.items():
-            norm_dlg = [Pack(speaker=USR, utt=[BOS, BOD, EOS], bs=[0.0]*self.bs_size, db=[0.0]*self.db_size)]
+            norm_dlg = [Pack(speaker=USR, utt=[BOS, BOD, EOS], bs=[0.0] * self.bs_size, db=[0.0] * self.db_size)]
             for t_id in range(len(raw_dlg['db'])):
                 usr_utt = [BOS] + self.tokenize(raw_dlg['usr'][t_id]) + [EOS]
                 sys_utt = [BOS] + self.tokenize(raw_dlg['sys'][t_id]) + [EOS]
@@ -57,7 +61,7 @@ class NormMultiWozCorpus(object):
                 norm_dlg.append(Pack(speaker=SYS, utt=sys_utt, db=raw_dlg['db'][t_id], bs=raw_dlg['bs'][t_id]))
                 all_sent_lens.extend([len(usr_utt), len(sys_utt)])
             # To stop dialog
-            norm_dlg.append(Pack(speaker=USR, utt=[BOS, EOD, EOS], bs=[0.0]*self.bs_size, db=[0.0]*self.db_size))
+            norm_dlg.append(Pack(speaker=USR, utt=[BOS, EOD, EOS], bs=[0.0] * self.bs_size, db=[0.0] * self.db_size))
             # if self.config.to_learn == 'usr':
             #     norm_dlg.append(Pack(speaker=USR, utt=[BOS, EOD, EOS], bs=[0.0]*self.bs_size, db=[0.0]*self.db_size))
             all_dlg_lens.append(len(raw_dlg['db']))
@@ -81,14 +85,15 @@ class NormMultiWozCorpus(object):
         oov_rate = np.sum([c for t, c in vocab_count[0:keep_vocab_size]]) / float(len(all_words))
 
         self.logger.info('cut off at word {} with frequency={},\n'.format(vocab_count[keep_vocab_size - 1][0],
-                                                               vocab_count[keep_vocab_size - 1][1]) +
-              'OOV rate = {:.2f}%'.format(100.0 - oov_rate * 100))
+                                                                          vocab_count[keep_vocab_size - 1][1]) +
+                         'OOV rate = {:.2f}%'.format(100.0 - oov_rate * 100))
 
         vocab_count = vocab_count[0:keep_vocab_size]
         self.vocab = SPECIAL_TOKENS + [t for t, cnt in vocab_count if t not in SPECIAL_TOKENS]
         self.vocab_dict = {t: idx for idx, t in enumerate(self.vocab)}
         self.unk_id = self.vocab_dict[UNK]
-        self.logger.info("Raw vocab size {} in train set and final vocab size {}".format(raw_vocab_size, len(self.vocab)))
+        self.logger.info(
+            "Raw vocab size {} in train set and final vocab size {}".format(raw_vocab_size, len(self.vocab)))
 
     def _process_goal(self, raw_goal):
         res = {}
@@ -119,9 +124,9 @@ class NormMultiWozCorpus(object):
             discard_wc = np.sum([c for t, c in vocab_count])
 
             self.logger.info('================= domain = {}, \n'.format(domain) +
-                  'goal vocab size of train set = %d, \n' % (raw_vocab_size,) +
-                  'cut off at word %s with frequency = %d, \n' % (vocab_count[-1][0], vocab_count[-1][1]) +
-                  'OOV rate = %.2f' % (1 - float(discard_wc) / len(all_words),))
+                             'goal vocab size of train set = %d, \n' % (raw_vocab_size,) +
+                             'cut off at word %s with frequency = %d, \n' % (vocab_count[-1][0], vocab_count[-1][1]) +
+                             'OOV rate = %.2f' % (1 - float(discard_wc) / len(all_words),))
 
             self.goal_vocab[domain] = [UNK] + [g for g, cnt in vocab_count]
             self.goal_vocab_dict[domain] = {t: idx for idx, t in enumerate(self.goal_vocab[domain])}
@@ -165,7 +170,7 @@ class NormMultiWozCorpus(object):
 
     def pad_to(self, max_len, tokens, do_pad):
         if len(tokens) >= max_len:
-            return tokens[: max_len-1] + [tokens[-1]]
+            return tokens[: max_len - 1] + [tokens[-1]]
         elif do_pad:
             return tokens + [0] * (max_len - len(tokens))
         else:

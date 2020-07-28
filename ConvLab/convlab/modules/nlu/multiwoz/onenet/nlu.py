@@ -14,19 +14,20 @@ from allennlp.models.archival import load_archive
 
 from convlab.lib.file_util import cached_path
 from convlab.modules.nlu.nlu import NLU
-from convlab.modules.nlu.multiwoz.onenet import dataset_reader, model 
+from convlab.modules.nlu.multiwoz.onenet import dataset_reader, model
 
-DEFAULT_CUDA_DEVICE=-1
+DEFAULT_CUDA_DEVICE = -1
 DEFAULT_DIRECTORY = "models"
 DEFAULT_ARCHIVE_FILE = os.path.join(DEFAULT_DIRECTORY, "onenet.tar.gz")
+
 
 class OneNetLU(NLU):
     """Multilabel sequence tagging model."""
 
     def __init__(self,
-                archive_file=DEFAULT_ARCHIVE_FILE,
-                cuda_device=DEFAULT_CUDA_DEVICE,
-                model_file=None):
+                 archive_file=DEFAULT_ARCHIVE_FILE,
+                 cuda_device=DEFAULT_CUDA_DEVICE,
+                 model_file=None):
         """ Constructor for NLU class. """
         check_for_gpu(cuda_device)
 
@@ -35,9 +36,8 @@ class OneNetLU(NLU):
                 raise Exception("No model for JointNLU is specified!")
             archive_file = cached_path(model_file)
 
-
         archive = load_archive(archive_file,
-                            cuda_device=cuda_device)
+                               cuda_device=cuda_device)
         self.tokenizer = SpacyWordSplitter(language="en_core_web_sm")
         dataset_reader_params = archive.config["dataset_reader"]
         self.dataset_reader = DatasetReader.from_params(dataset_reader_params)

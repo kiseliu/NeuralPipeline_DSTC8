@@ -9,17 +9,17 @@ import time
 from nltk.translate.bleu_score import corpus_bleu, SmoothingFunction
 
 
-#def delexicalise(sent,dact): # for domain4
+# def delexicalise(sent,dact): # for domain4
 #	feat = SoftDActFormatter().parse(dact,keepValues=True)
 #	return ExactMatchDataLexicaliser().delexicalise(sent,feat['s2v'])
 #
 #
-#def lexicalise(sent,dact): # for domain4
+# def lexicalise(sent,dact): # for domain4
 #	feat = SoftDActFormatter().parse(dact,keepValues=True)
 #	return ExactMatchDataLexicaliser().lexicalise(sent,feat['s2v'])
 #
 #
-#def parse_sr(sr, domain): # for domain4
+# def parse_sr(sr, domain): # for domain4
 #	'''
 #	input da: 'inform(name=piperade;goodformeal=dinner;food=basque)'
 #	return  : a str 'domain|da|slot1, slot2, ...'
@@ -88,7 +88,7 @@ from nltk.translate.bleu_score import corpus_bleu, SmoothingFunction
 
 
 def score_woz(res_file, ignore=False):
-    #corpus = []
+    # corpus = []
     feat2content = {}
     with open(res_file) as f:
         for line in f:
@@ -96,7 +96,7 @@ def score_woz(res_file, ignore=False):
                 feat = line.strip().split(':')[1][1:]
 
                 if feat not in feat2content:
-                    feat2content[feat] = [[], [], []] # [ [refs], [bases], [gens] ]
+                    feat2content[feat] = [[], [], []]  # [ [refs], [bases], [gens] ]
                 continue
 
             if 'Target' in line:
@@ -117,6 +117,7 @@ def score_woz(res_file, ignore=False):
                     feat2content[feat][2].append(gen)
 
     return feat2content
+
 
 def get_bleu(feat2content, template=False, ignore=False):
     test_type = 'base' if template else 'gen'
@@ -139,22 +140,22 @@ def get_bleu(feat2content, template=False, ignore=False):
             list_of_references['base'].append(refs)
             hypotheses['base'].append(base)
 
-
     print('TEST TYPE:', test_type)
     print('Ignore General Acts:', ignore)
     smooth = SmoothingFunction()
     print('Calculating BLEU...', file=sys.stderr)
-    print( 'Avg # feat:', len(feat2content) )
-    print( 'Avg # gen: {:.2f}'.format(gen_count / len(feat2content)) )
+    print('Avg # feat:', len(feat2content))
+    print('Avg # gen: {:.2f}'.format(gen_count / len(feat2content)))
     BLEU = []
     weights = [(1, 0, 0, 0), (0.5, 0.5, 0, 0), (0.333, 0.333, 0.333, 0), (0.25, 0.25, 0.25, 0.25)]
     for i in range(4):
         if i == 0 or i == 1 or i == 2:
             continue
         t = time.time()
-        bleu = corpus_bleu(list_of_references[test_type], hypotheses[test_type], weights=weights[i], smoothing_function=smooth.method1)
+        bleu = corpus_bleu(list_of_references[test_type], hypotheses[test_type], weights=weights[i],
+                           smoothing_function=smooth.method1)
         BLEU.append(bleu)
-        print('Done BLEU-{}, time:{:.1f}'.format(i+1, time.time()-t))
+        print('Done BLEU-{}, time:{:.1f}'.format(i + 1, time.time() - t))
     print('BLEU 1-4:', BLEU)
     print('BLEU 1-4:', BLEU, file=sys.stderr)
     print('Done', test_type, file=sys.stderr)
@@ -172,7 +173,7 @@ if __name__ == '__main__':
     if args.dataset == 'woz':
         assert args.template is False
         feat2content = score_woz(args.res_file, ignore=args.ignore)
-    else: # domain4
+    else:  # domain4
         assert NotImplementedError
         # assert args.ignore is False
         # feat2content = score_domain4(args.res_file)

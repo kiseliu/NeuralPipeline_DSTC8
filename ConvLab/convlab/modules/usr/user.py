@@ -5,8 +5,10 @@ from convlab.modules.util.multiwoz.da_normalize import da_normalize
 """
 """
 
+
 class UserSimulator:
     """An aggregation of user simulator components."""
+
     def __init__(self, nlu_model, policy, nlg_model):
         """
         The constructor of UserSimulator class. The input are the models of each component.

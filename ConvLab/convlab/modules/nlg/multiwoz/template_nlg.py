@@ -3,8 +3,9 @@
 
 from convlab.modules.nlg.nlg import NLG
 
+
 class TemplateNLG(NLG):
-    def init(self,):
+    def init(self, ):
         NLG.__init__(self)
 
     def generate(self, dialog_act):

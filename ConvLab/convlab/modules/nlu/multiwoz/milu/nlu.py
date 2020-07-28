@@ -14,7 +14,7 @@ from allennlp.models.archival import load_archive
 
 from convlab.lib.file_util import cached_path
 from convlab.modules.nlu.nlu import NLU
-from convlab.modules.nlu.multiwoz.milu import dataset_reader, model 
+from convlab.modules.nlu.multiwoz.milu import dataset_reader, model
 
 from spacy.symbols import ORTH, LEMMA
 
@@ -22,14 +22,15 @@ DEFAULT_CUDA_DEVICE = -1
 DEFAULT_DIRECTORY = "models"
 DEFAULT_ARCHIVE_FILE = os.path.join(DEFAULT_DIRECTORY, "milu.tar.gz")
 
+
 class MILU(NLU):
     """Multi-intent language understanding model."""
 
     def __init__(self,
-                archive_file=DEFAULT_ARCHIVE_FILE,
-                cuda_device=DEFAULT_CUDA_DEVICE,
-                model_file=None,
-                context_size=3):
+                 archive_file=DEFAULT_ARCHIVE_FILE,
+                 cuda_device=DEFAULT_CUDA_DEVICE,
+                 model_file=None,
+                 context_size=3):
         """ Constructor for NLU class. """
 
         self.context_size = context_size
@@ -43,7 +44,7 @@ class MILU(NLU):
             archive_file = cached_path(model_file)
 
         archive = load_archive(archive_file,
-                            cuda_device=cuda_device)
+                               cuda_device=cuda_device)
         self.tokenizer = SpacyWordSplitter(language="en_core_web_sm")
         _special_case = [{ORTH: u"id", LEMMA: u"id"}]
         self.tokenizer.spacy.tokenizer.add_special_case(u"id", _special_case)
@@ -52,7 +53,6 @@ class MILU(NLU):
         self.dataset_reader = DatasetReader.from_params(dataset_reader_params)
         self.model = archive.model
         self.model.eval()
-
 
     def parse(self, utterance, context=[]):
         """
@@ -66,7 +66,8 @@ class MILU(NLU):
             return {}
 
         if self.context_size > 0 and len(context) > 0:
-            context_tokens = sum([self.tokenizer.split_words(utterance+" SENT_END") for utterance in context[-self.context_size:]], [])
+            context_tokens = sum(
+                [self.tokenizer.split_words(utterance + " SENT_END") for utterance in context[-self.context_size:]], [])
         else:
             context_tokens = self.tokenizer.split_words("SENT_END")
         tokens = self.tokenizer.split_words(utterance)

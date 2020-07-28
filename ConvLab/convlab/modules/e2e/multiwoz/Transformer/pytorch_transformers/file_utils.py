@@ -24,6 +24,7 @@ from tqdm import tqdm
 
 try:
     from torch.hub import _get_torch_home
+
     torch_cache_home = _get_torch_home()
 except ImportError:
     torch_cache_home = os.path.expanduser(
@@ -38,6 +39,7 @@ except ImportError:
 
 try:
     from pathlib import Path
+
     PYTORCH_PRETRAINED_BERT_CACHE = Path(
         os.getenv('PYTORCH_PRETRAINED_BERT_CACHE', default_cache_path))
 except (AttributeError, ImportError):
@@ -176,7 +178,7 @@ def http_get(url, temp_file):
     total = int(content_length) if content_length is not None else None
     progress = tqdm(unit="B", total=total)
     for chunk in req.iter_content(chunk_size=1024):
-        if chunk: # filter out keep-alive new chunks
+        if chunk:  # filter out keep-alive new chunks
             progress.update(len(chunk))
             temp_file.write(chunk)
     progress.close()

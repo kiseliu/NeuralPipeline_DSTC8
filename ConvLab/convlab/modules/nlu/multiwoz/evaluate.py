@@ -30,7 +30,7 @@ def da2triples(dialog_act):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2 :
+    if len(sys.argv) != 2:
         print("usage:")
         print("\t python evaluate.py model_name")
         print("\t model_name=OneNetLU, MILU, or SVMNLU")
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     for no, session in test_data.items():
         sen_num += len(session['log'])
         sess_num += 1
-        if sess_num%10==0:
+        if sess_num % 10 == 0:
             print('Session [%d|%d]' % (sess_num, len(test_data)))
             precision = 1.0 * TP / (TP + FP)
             recall = 1.0 * TP / (TP + FN)
@@ -73,11 +73,11 @@ if __name__ == '__main__':
             for triple in labels:
                 if triple not in predicts:
                     FN += 1
-    print(TP,FP,FN)
+    print(TP, FP, FN)
     precision = 1.0 * TP / (TP + FP)
     recall = 1.0 * TP / (TP + FN)
     F1 = 2.0 * precision * recall / (precision + recall)
-    print('Model {} on {} session {} sentences:'.format(model_name,len(test_data),sen_num))
+    print('Model {} on {} session {} sentences:'.format(model_name, len(test_data), sen_num))
     print('\t Precision: %.2f' % (100 * precision))
     print('\t Recall: %.2f' % (100 * recall))
     print('\t F1: %.2f' % (100 * F1))

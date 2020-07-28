@@ -5,7 +5,7 @@ import copy
 import torch.nn.functional as F
 import time
 import numpy as np
-from convlab.modules.e2e.multiwoz.Transformer.train import SPECIAL_TOKENS_V1, SPECIAL_TOKENS_V4,\
+from convlab.modules.e2e.multiwoz.Transformer.train import SPECIAL_TOKENS_V1, SPECIAL_TOKENS_V4, \
     build_input_from_segments_v1, build_input_from_segments_v2, act_name, slot_name
 from convlab.modules.util.multiwoz.dbquery import query
 from convlab.modules.e2e.multiwoz.Transformer.pytorch_transformers import GPT2DoubleHeadsModel, GPT2Tokenizer
@@ -14,21 +14,21 @@ from spacy.symbols import ORTH
 from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 import seaborn
-DEFAULT_CUDA_DEVICE=-1
+
+DEFAULT_CUDA_DEVICE = -1
 DEFAULT_DIRECTORY = "models"
 seaborn.set(font=['AppleMyungjo'], font_scale=2)
 
 
 def visualize(text, target, attention_density, aux):
-
     plt.clf()
-    fig = plt.figure(figsize=(28,24))
-    ax = seaborn.heatmap(attention_density[-len(target):,-(len(target) + len(text)) :-len(target) -2],
-        xticklabels=[w for w in text[:-2]],
-        yticklabels=[w for w in target])
+    fig = plt.figure(figsize=(28, 24))
+    ax = seaborn.heatmap(attention_density[-len(target):, -(len(target) + len(text)):-len(target) - 2],
+                         xticklabels=[w for w in text[:-2]],
+                         yticklabels=[w for w in target])
 
     ax.invert_yaxis()
-    #plt.show()
+    # plt.show()
     plt.title(u'Attention Heatmap')
     file_name = './img/_attention_heatmap_' + aux + ".png"
     print("Saving figures %s" % file_name)
@@ -252,7 +252,7 @@ class Transformer():
                     attentions_cpu = copy.deepcopy(attentions)
                     for j in range(len(attentions_cpu)):
                         for i, attn in enumerate(attentions_cpu[j][0].cpu()):
-                            #visualize(X, Y, attn, 'v1_dp_{}_{}'.format(j, i))
+                            # visualize(X, Y, attn, 'v1_dp_{}_{}'.format(j, i))
                             pass
                     dialog_act = dp[1:]
                     da_text = self.decode(dialog_act)
@@ -311,7 +311,6 @@ class Transformer():
             logits, attentions = self.model(input_ids, token_type_ids=token_type_ids)
 
             if "gpt2" in self.model_name:
-
                 logits = logits[0]
 
             logits = logits[0, -1, :] / self.temperature
@@ -338,19 +337,18 @@ class Transformer():
                 attentions_cpu = copy.deepcopy(attentions)
                 for j in range(len(attentions_cpu)):
                     for i, attn in enumerate(attentions_cpu[j][0].cpu()):
-
-                        visualize(X, Y, attn, 'res_{}_{}'.format(j,i))
+                        visualize(X, Y, attn, 'res_{}_{}'.format(j, i))
                 break
 
             if prev.item() in dptok:
 
-                X = ['<bos>']+['<usr>'] + [self.tokenizer.decode([x]) for x in history[0]]
-                Y = ['<cs>']+[self.tokenizer.decode([x]) for x in cs]
+                X = ['<bos>'] + ['<usr>'] + [self.tokenizer.decode([x]) for x in history[0]]
+                Y = ['<cs>'] + [self.tokenizer.decode([x]) for x in cs]
                 attentions_cpu = copy.deepcopy(attentions)
                 for j in range(len(attentions_cpu)):
                     for i, attn in enumerate(attentions_cpu[j][0].cpu()):
                         pass
-                        #visualize(X, Y, attn, 'cs_{}_{}'.format(j,i))
+                        # visualize(X, Y, attn, 'cs_{}_{}'.format(j,i))
                 if cs_count == 0:
 
                     cs_text = self.decode(cs).strip()
@@ -407,7 +405,7 @@ class Transformer():
                 for j in range(len(attentions_cpu)):
                     for i, attn in enumerate(attentions_cpu[j][0].cpu()):
                         pass
-                        #visualize(X, Y, attn, 'dp_{}_{}'.format(j,i))
+                        # visualize(X, Y, attn, 'dp_{}_{}'.format(j,i))
                 if dp_count == 0:
                     dialog_act = dp[1:]
                     da_text = self.decode(dialog_act).strip()
@@ -436,7 +434,7 @@ class Transformer():
                                     bs.append(value[k])
                             else:
                                 bs.append(value.lower())
-                    dp = self.tokenizer.encode('<dp> '+' '.join(bs))
+                    dp = self.tokenizer.encode('<dp> ' + ' '.join(bs))
                     i = 0
                     dp_count += 1
                     dp_done += 1
@@ -452,8 +450,6 @@ class Transformer():
         self.prev_cs = constraints
         self.prev_dom = self.cur_dom
         return current_output[1:], dp[1:], cs_dict, kb_results, whole_kb
-
-
 
     def convert_da(self, da, dia_act_dict):
 
@@ -759,11 +755,11 @@ class Transformer():
         return out_text.strip()
 
 
-
 def run():
     parser = ArgumentParser()
     parser.add_argument("--model", type=str, default='gpt2-v1', help="Path, url or short name of the model")
-    parser.add_argument("--model_checkpoint", type=str, default='./models/v1', help="Path, url or short name of the model")
+    parser.add_argument("--model_checkpoint", type=str, default='./models/v1',
+                        help="Path, url or short name of the model")
     args = parser.parse_args()
 
     model = Transformer(model=args.model, model_checkpoint=args.model_checkpoint)
@@ -784,6 +780,7 @@ def run():
             continue
         out_text = model.predict(raw_text)
         print('sys:', out_text)
+
 
 if __name__ == "__main__":
     run()

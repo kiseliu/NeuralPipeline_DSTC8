@@ -90,23 +90,23 @@ REF_SYS_DA = {
 }
 
 init_belief_state = {
-        'taxi': {'book': {'booked': []}, 'semi': {'leaveAt': '', 'destination': '', 'departure': '', 'arriveBy': ''}},
-        'police': {'book': {'booked': []}, 'semi': {}},
-        'restaurant': {'book': {'booked': [], 'time': '', 'day': '', 'people': ''},
-                       'semi': {'food': '', 'pricerange': '', 'name': '', 'area': ''}},
-        'hospital': {'book': {'booked': []}, 'semi': {'department': ''}},
-        'hotel': {'book': {'booked': [], 'stay': '', 'day': '', 'people': ''},
-                  'semi': {'name': '', 'area': '', 'parking': '', 'pricerange': '', 'stars': '', 'internet': '',
-                           'type': ''}},
-        'attraction': {'book': {'booked': []}, 'semi': {'type': '', 'name': '', 'area': ''}},
-        'train': {'book': {'booked': [], 'people': '', 'ticket': ''},
-                  'semi': {'leaveAt': '', 'destination': '', 'day': '', 'arriveBy': '', 'departure': ''}}
+    'taxi': {'book': {'booked': []}, 'semi': {'leaveAt': '', 'destination': '', 'departure': '', 'arriveBy': ''}},
+    'police': {'book': {'booked': []}, 'semi': {}},
+    'restaurant': {'book': {'booked': [], 'time': '', 'day': '', 'people': ''},
+                   'semi': {'food': '', 'pricerange': '', 'name': '', 'area': ''}},
+    'hospital': {'book': {'booked': []}, 'semi': {'department': ''}},
+    'hotel': {'book': {'booked': [], 'stay': '', 'day': '', 'people': ''},
+              'semi': {'name': '', 'area': '', 'parking': '', 'pricerange': '', 'stars': '', 'internet': '',
+                       'type': ''}},
+    'attraction': {'book': {'booked': []}, 'semi': {'type': '', 'name': '', 'area': ''}},
+    'train': {'book': {'booked': [], 'people': '', 'ticket': ''},
+              'semi': {'leaveAt': '', 'destination': '', 'day': '', 'arriveBy': '', 'departure': ''}}
 }
 digit2word = {
     '0': 'zero', '1': 'one', '2': 'two', '3': 'three', '4': 'four', '5': 'five',
     '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine', '10': 'ten'
 }
-word2digit = {v:k for k,v in digit2word.items()}
+word2digit = {v: k for k, v in digit2word.items()}
 
 
 def read_json(filename):
@@ -129,13 +129,13 @@ def un_zip(file_name):
 
 def tokenize(data, process_text=True, process_da=True, process_ref=True):
     print('Begin tokenization:')
-    print('='*50)
+    print('=' * 50)
     nlp = spacy.load('en_core_web_sm')
     cnt = 0
     for no, session in data.items():
         cnt += 1
         if cnt % 1000 == 0:
-            print('[%d|%d]' % (cnt,len(data)))
+            print('[%d|%d]' % (cnt, len(data)))
         for turn in session['log']:
             if process_text:
                 doc = nlp(turn['text'])
@@ -150,13 +150,13 @@ def tokenize(data, process_text=True, process_da=True, process_ref=True):
     print('Finish tokenization')
 
 
-def dict_diff(dict1,dict2):
+def dict_diff(dict1, dict2):
     # compare two dict
     # two exceptions:
     # 1) 'bus' domain unuse
     # 2) 'ticket' and 'people' attr for 'train-book' domain may be missing
     diff_dict = {}
-    for k,v2 in dict2.items():
+    for k, v2 in dict2.items():
         if k in dict1:
             assert isinstance(v2, type(dict1[k]))
             v1 = dict1[k]
@@ -164,13 +164,13 @@ def dict_diff(dict1,dict2):
                 if not isinstance(v2, type({})):
                     diff_dict[k] = v2
                 else:
-                    if dict_diff(v1,v2)!={}:
-                        diff_dict[k] = dict_diff(v1,v2)
+                    if dict_diff(v1, v2) != {}:
+                        diff_dict[k] = dict_diff(v1, v2)
         else:
-            if k!='bus':
-                assert k=='people'
+            if k != 'bus':
+                assert k == 'people'
                 # people attribute for train domain
-                if v2!='':
+                if v2 != '':
                     diff_dict[k] = v2
     return diff_dict
 
@@ -184,7 +184,7 @@ def phrase_in_utt(phrase, utt):
     elif phrase_low in word2digit:
         phrases.append(word2digit[phrase_low])
     else:
-        if ' '+phrase_low in utt_low or utt_low.startswith(phrase_low):
+        if ' ' + phrase_low in utt_low or utt_low.startswith(phrase_low):
             return True
         else:
             return False
@@ -192,7 +192,7 @@ def phrase_in_utt(phrase, utt):
     for w in phrases:
         if utt_low.startswith(w) or utt_low.endswith(w):
             return True
-        elif ' '+w+' ' in utt_low:
+        elif ' ' + w + ' ' in utt_low:
             return True
     return False
 
@@ -206,15 +206,15 @@ def phrase_idx_utt(phrase, utt):
     elif phrase_low in word2digit:
         phrases.append(word2digit[phrase_low])
     else:
-        if ' '+phrase_low in utt_low or utt_low.startswith(phrase_low):
+        if ' ' + phrase_low in utt_low or utt_low.startswith(phrase_low):
             return get_idx(phrase_low, utt_low)
         else:
             return None
     for w in phrases:
         if utt_low.startswith(w) or utt_low.endswith(w):
             return get_idx(w, utt_low)
-        elif ' '+w+' ' in utt_low:
-            return get_idx(' '+w+' ', utt_low)
+        elif ' ' + w + ' ' in utt_low:
+            return get_idx(' ' + w + ' ', utt_low)
         # elif w+'-star' in utt_low:
         #     return get_idx(w, utt_low)
     return None
@@ -338,7 +338,7 @@ def annotate_user_da(data):
                                 if phrase_in_utt(value_goal, user_utterance):
                                     if slot == 'stars':
                                         if phrase_in_utt('star ', user_utterance) or \
-                                                phrase_in_utt('stars ',user_utterance) or \
+                                                phrase_in_utt('stars ', user_utterance) or \
                                                 user_utterance.lower().endswith('star') or \
                                                 user_utterance.lower().endswith('stars') or \
                                                 '-star' in user_utterance.lower():
@@ -349,8 +349,10 @@ def annotate_user_da(data):
                                                 phrase_in_utt('nights', user_utterance):
                                             da[domain.capitalize() + '-Inform'].append([slot_in_da, value_goal])
                                     elif slot == 'people':
-                                        if phrase_in_utt('people', user_utterance) or phrase_in_utt('person', user_utterance):
-                                            if phrase_in_utt(domain, user_utterance) or phrase_in_utt(domain, prev_utterance):
+                                        if phrase_in_utt('people', user_utterance) or phrase_in_utt('person',
+                                                                                                    user_utterance):
+                                            if phrase_in_utt(domain, user_utterance) or phrase_in_utt(domain,
+                                                                                                      prev_utterance):
                                                 da[domain.capitalize() + '-Inform'].append([slot_in_da, value_goal])
                                         elif phrase_in_utt('ticket', user_utterance):
                                             if domain == 'train':
@@ -474,7 +476,7 @@ def annotate_user_da(data):
                     da['general-greet'] = [['none', 'none']]
 
             user_das.append(da)
-            if no=='MUL0800':
+            if no == 'MUL0800':
                 print(user_utterance)
                 print(da)
                 print(next_da)
@@ -506,15 +508,15 @@ def annotate_sys_da(data, database):
         for k, v in d.items():
             if k != 'id':
                 hospital_val2slot[v] = k
-                hospital_slot2val.setdefault(k,[])
+                hospital_slot2val.setdefault(k, [])
                 hospital_slot2val[k].append(v)
     hospital_slot2val['phone'].append('01223245151')
-    hospital_slot2val['address']=['Hills Rd , Cambridge']
+    hospital_slot2val['address'] = ['Hills Rd , Cambridge']
     hospital_slot2val['postcode'] = ['CB20QQ']
     hospital_val2slot['01223245151'] = 'phone'
     hospital_val2slot['Hills Rd , Cambridge'] = 'address'
     hospital_val2slot['CB20QQ'] = 'postcode'
-    hospital_slots = set(database['hospital'][0].keys())-{'id'}
+    hospital_slots = set(database['hospital'][0].keys()) - {'id'}
     hospital_slots = hospital_slots | {'address'}
     hospital_vals = set(hospital_val2slot.keys())
     print('hospital slot:', hospital_slots)
@@ -563,7 +565,7 @@ def annotate_sys_da(data, database):
                         if phrase_in_utt(val, utterance):
                             break
                     else:
-                        if i%2==1:
+                        if i % 2 == 1:
                             das['Hospital-Request'] = [[REF_USR_DA['Hospital'][slot], '?']]
 
             for da, svs in das.items():
@@ -572,8 +574,8 @@ def annotate_sys_da(data, database):
                         real_v = ''.join(v.split())
                         if v in session['log'][i]['text']:
                             session['log'][i]['text'] = session['log'][i]['text'].replace(v, real_v)
-                        if real_v+'.' in session['log'][i]['text']:
-                            session['log'][i]['text'] = session['log'][i]['text'].replace(real_v+'.', real_v+' .')
+                        if real_v + '.' in session['log'][i]['text']:
+                            session['log'][i]['text'] = session['log'][i]['text'].replace(real_v + '.', real_v + ' .')
                         svs[j][1] = real_v
     print('=' * 50)
     print('End system da annotation')
@@ -603,10 +605,10 @@ def annotate_span(data):
                                 span_info.append((da, s, v, word_index_begin, word_index_end))
                             elif s == 'Stars':
                                 pattern = ''
-                                if phrase_in_utt(v+'-star', utterance):
-                                    pattern = v+'-star'
-                                elif phrase_in_utt(v+'-stars', utterance):
-                                    pattern = v+'-stars'
+                                if phrase_in_utt(v + '-star', utterance):
+                                    pattern = v + '-star'
+                                elif phrase_in_utt(v + '-stars', utterance):
+                                    pattern = v + '-stars'
                                 if pattern:
                                     is_annotated = True
                                     word_index_begin, word_index_end = phrase_idx_utt(pattern, utterance)
@@ -634,7 +636,8 @@ def annotate_span(data):
                                     span_info.append((da, s, v, word_index_begin, word_index_end))
                                 else:
                                     word_index_begin, word_index_end = phrase_idx_utt('same', utterance)
-                                    shift = len(utterance[:utterance.lower().index(s.lower())].split()) - word_index_begin
+                                    shift = len(
+                                        utterance[:utterance.lower().index(s.lower())].split()) - word_index_begin
                                     if 0 < shift <= 3:
                                         is_annotated = True
                                         span_info.append((da, s, v, word_index_begin, word_index_begin + shift))
@@ -678,21 +681,21 @@ def post_process_span(data):
             span_info = session['log'][i]['span_info']
             start_end_pos = dict()
             for act, slot, value, start, end in span_info:
-                if (start,end) in start_end_pos:
-                    start_end_pos[(start,end)].append([act, slot, value, start, end])
+                if (start, end) in start_end_pos:
+                    start_end_pos[(start, end)].append([act, slot, value, start, end])
                 else:
-                    start_end_pos[(start,end)] = [[act, slot, value, start, end]]
+                    start_end_pos[(start, end)] = [[act, slot, value, start, end]]
             for start_end in start_end_pos:
                 if len(start_end_pos[start_end]) > 1:
                     value = [x[2] for x in start_end_pos[start_end]]
-                    if len(set(value))>1:
+                    if len(set(value)) > 1:
                         # print(utterance)
                         # print(start_end_pos[start_end])
                         for ele in start_end_pos[start_end]:
                             v = ele[2]
-                            if utterance.startswith(v+' '):
-                                new_span = get_idx(v+' ',utterance)
-                            elif ' '+v+' ' in utterance:
+                            if utterance.startswith(v + ' '):
+                                new_span = get_idx(v + ' ', utterance)
+                            elif ' ' + v + ' ' in utterance:
                                 new_span = get_idx(' ' + v + ' ', utterance)
                             else:
                                 new_span = None
@@ -717,8 +720,8 @@ def post_process_span(data):
                                         v_set.append(digit2word[v])
                                     elif v in word2digit:
                                         v_set.append(word2digit[v])
-                                    if utterance.split()[slot_span[0]-1] in v_set:
-                                        ele[3], ele[4] = slot_span[0]-1, slot_span[1]-1
+                                    if utterance.split()[slot_span[0] - 1] in v_set:
+                                        ele[3], ele[4] = slot_span[0] - 1, slot_span[1] - 1
 
                             elif slot == 'Stay':
                                 pattern = ''
@@ -733,13 +736,11 @@ def post_process_span(data):
                                         v_set.append(digit2word[v])
                                     elif v in word2digit:
                                         v_set.append(word2digit[v])
-                                    if utterance.split()[slot_span[0]-1] in v_set:
-                                        ele[3], ele[4] = slot_span[0]-1, slot_span[1]-1
+                                    if utterance.split()[slot_span[0] - 1] in v_set:
+                                        ele[3], ele[4] = slot_span[0] - 1, slot_span[1] - 1
                         # print(start_end_pos[start_end])
             new_span_info = [x for y in start_end_pos.values() for x in y]
             session['log'][i]['span_info'] = new_span_info
-
-
 
 
 if __name__ == '__main__':
@@ -754,8 +755,8 @@ if __name__ == '__main__':
         'police': read_json(dir_name + 'police_db.json'),
         'hospital': read_json(dir_name + 'hospital_db.json'),
     }
-    dialog_acts = read_json(dir_name+'dialogue_acts.json')
-    data = read_json(dir_name+'data.json')
+    dialog_acts = read_json(dir_name + 'dialogue_acts.json')
+    data = read_json(dir_name + 'data.json')
     sessions_key = list(map(lambda x: x.split('.')[0], data.keys()))
     all_data = {}
     for session in sessions_key:

@@ -14,17 +14,17 @@ from convlab.modules.dst.multiwoz.dst_util import init_state
 from convlab.modules.action_decoder.multiwoz.multiwoz_vocab_action_decoder import MultiWozVocabActionDecoder
 from convlab.modules.policy.system.policy import SysPolicy
 
-DEFAULT_CUDA_DEVICE=-1
-DEFAULT_ARCHIVE_FILE=os.path.join(os.path.dirname(os.path.abspath(__file__)), "models/300/model.tar.gz")
+DEFAULT_CUDA_DEVICE = -1
+DEFAULT_ARCHIVE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models/300/model.tar.gz")
 
 
 class VanillaMLEPolicy(SysPolicy):
     """Vanilla MLE trained policy."""
 
-    def __init__(self, 
-                archive_file=DEFAULT_ARCHIVE_FILE,
-                cuda_device=DEFAULT_CUDA_DEVICE,
-                model_file=None):
+    def __init__(self,
+                 archive_file=DEFAULT_ARCHIVE_FILE,
+                 cuda_device=DEFAULT_CUDA_DEVICE,
+                 model_file=None):
         """ Constructor for NLU class. """
         SysPolicy.__init__(self)
 
@@ -36,7 +36,7 @@ class VanillaMLEPolicy(SysPolicy):
             archive_file = cached_path(model_file)
 
         archive = load_archive(archive_file,
-                            cuda_device=cuda_device)
+                               cuda_device=cuda_device)
         dataset_reader_params = archive.config["dataset_reader"]
         self.dataset_reader = DatasetReader.from_params(dataset_reader_params)
         self.action_decoder = MultiWozVocabActionDecoder()
@@ -63,11 +63,10 @@ class VanillaMLEPolicy(SysPolicy):
             outputs["actions"] = np.argmax(outputs["probs"])
             dialacts = self.action_decoder.decode(outputs["actions"], state)
 
-
         if state == init_state():
             dialacts = {}
 
-        return dialacts 
+        return dialacts
 
 
 if __name__ == "__main__":

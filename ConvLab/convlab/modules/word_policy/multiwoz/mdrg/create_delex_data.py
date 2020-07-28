@@ -26,6 +26,7 @@ np.random.seed(2)
 DICT_SIZE = 400
 MAX_LENGTH = 50
 
+
 def is_ascii(s):
     return all(ord(c) < 128 for c in s)
 
@@ -112,7 +113,7 @@ def addBookingPointer(task, turn, pointer_vector):
         # if turn['metadata']['train'].has_key("book"):
         if "book" in turn['metadata']['train']:
             # if turn['metadata']['train']['book'].has_key("booked"):
-            if "booked" in  turn['metadata']['train']['book']:
+            if "booked" in turn['metadata']['train']['book']:
                 if turn['metadata']['train']['book']["booked"]:
                     if "reference" in turn['metadata']['train']['book']["booked"][0]:
                         train_vec = np.array([0, 1])
@@ -137,13 +138,13 @@ def addDBPointer(turn):
 
 def get_summary_bstate(bstate):
     """Based on the mturk annotations we form multi-domain belief state"""
-    domains = [u'taxi',u'restaurant',  u'hospital', u'hotel',u'attraction', u'train', u'police']
+    domains = [u'taxi', u'restaurant', u'hospital', u'hotel', u'attraction', u'train', u'police']
     summary_bstate = []
     for domain in domains:
         domain_active = False
 
         booking = []
-        #print(domain,len(bstate[domain]['book'].keys()))
+        # print(domain,len(bstate[domain]['book'].keys()))
         for slot in sorted(bstate[domain]['book'].keys()):
             if slot == 'booked':
                 if bstate[domain]['book']['booked']:
@@ -166,7 +167,8 @@ def get_summary_bstate(bstate):
             slot_enc = [0, 0, 0]  # not mentioned, dontcare, filled
             if bstate[domain]['semi'][slot] == 'not mentioned':
                 slot_enc[0] = 1
-            elif bstate[domain]['semi'][slot] == 'dont care' or bstate[domain]['semi'][slot] == 'dontcare' or bstate[domain]['semi'][slot] == "don't care":
+            elif bstate[domain]['semi'][slot] == 'dont care' or bstate[domain]['semi'][slot] == 'dontcare' or \
+                    bstate[domain]['semi'][slot] == "don't care":
                 slot_enc[1] = 1
             elif bstate[domain]['semi'][slot]:
                 slot_enc[2] = 1
@@ -180,7 +182,7 @@ def get_summary_bstate(bstate):
         else:
             summary_bstate += [0]
 
-    #print(len(summary_bstate))
+    # print(len(summary_bstate))
     assert len(summary_bstate) == 94
     return summary_bstate
 
@@ -190,7 +192,7 @@ def analyze_dialogue(dialogue, maxlen):
     d = dialogue
     # do all the necessary postprocessing
     if len(d['log']) % 2 != 0:
-        #print path
+        # print path
         print('odd # of turns')
         return None  # odd number of turns, wrong dialogue
     d_pp = {}
@@ -209,14 +211,14 @@ def analyze_dialogue(dialogue, maxlen):
             if not is_ascii(text):
                 print('not ascii')
                 return None
-            #d['log'][i]['tkn_text'] = self.tokenize_sentence(text, usr=True)
+            # d['log'][i]['tkn_text'] = self.tokenize_sentence(text, usr=True)
             usr_turns.append(d['log'][i])
         else:  # sys turn
             text = d['log'][i]['text']
             if not is_ascii(text):
                 print('not ascii')
                 return None
-            #d['log'][i]['tkn_text'] = self.tokenize_sentence(text, usr=False)
+            # d['log'][i]['tkn_text'] = self.tokenize_sentence(text, usr=False)
             belief_summary = get_summary_bstate(d['log'][i]['metadata'])
             d['log'][i]['belief_summary'] = belief_summary
             sys_turns.append(d['log'][i])
@@ -301,7 +303,7 @@ def createDelexData():
     """
     # download the data
     loadData()
-    
+
     # create dictionary of delexicalied values that then we will search against, order matters here!
     dic = delexicalize.prepareSlotValuesIndependent()
     delex_data = {}
@@ -314,10 +316,10 @@ def createDelexData():
     fin2 = open('data/multi-woz/dialogue_acts.json')
     data2 = json.load(fin2)
 
-    num  = 0
+    num = 0
     for dialogue_name in tqdm(data):
         dialogue = data[dialogue_name]
-        #print dialogue_name
+        # print dialogue_name
 
         idx_acts = 1
 
@@ -344,12 +346,12 @@ def createDelexData():
                 # add booking pointer
                 pointer_vector = addBookingPointer(dialogue, turn, pointer_vector)
 
-                #print pointer_vector
+                # print pointer_vector
                 dialogue['log'][idx - 1]['db_pointer'] = pointer_vector.tolist()
 
             # FIXING delexicalization:
             dialogue = fixDelex(dialogue_name, dialogue, data2, idx, idx_acts)
-            idx_acts +=1
+            idx_acts += 1
 
         delex_data[dialogue_name] = dialogue
         # num += 1
@@ -382,13 +384,13 @@ def divideData(data):
     test_dials = {}
     val_dials = {}
     train_dials = {}
-        
+
     # dictionaries
     word_freqs_usr = OrderedDict()
     word_freqs_sys = OrderedDict()
-    
+
     for dialogue_name in tqdm(data):
-        #print dialogue_name
+        # print dialogue_name
         dial = get_dial(data[dialogue_name])
         if dial:
             dialogue = {}
@@ -451,18 +453,18 @@ def buildDictionaries(word_freqs_usr, word_freqs_sys):
     idx2words = []
     for dictionary in dicts:
         dic = {}
-        for k,v in dictionary.items():
+        for k, v in dictionary.items():
             dic[v] = k
         idx2words.append(dic)
 
     with open('data/input_lang.index2word.json', 'w') as f:
         json.dump(idx2words[0], f, indent=2)
     with open('data/input_lang.word2index.json', 'w') as f:
-        json.dump(dicts[0], f,indent=2)
+        json.dump(dicts[0], f, indent=2)
     with open('data/output_lang.index2word.json', 'w') as f:
-        json.dump(idx2words[1], f,indent=2)
+        json.dump(idx2words[1], f, indent=2)
     with open('data/output_lang.word2index.json', 'w') as f:
-        json.dump(dicts[1], f,indent=2)
+        json.dump(dicts[1], f, indent=2)
 
 
 def main():

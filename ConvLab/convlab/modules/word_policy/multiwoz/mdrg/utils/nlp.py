@@ -11,10 +11,9 @@ from nltk.util import ngrams
 timepat = re.compile("\d{1,2}[:]\d{1,2}")
 pricepat = re.compile("\d{1,3}[.]\d{1,2}")
 
-
 # fin = file('utils/mapping.pair')
 # fin = open('/home/sule/projects/research/multiwoz/utils/mapping.pair')
-fin = open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'mapping.pair'))
+fin = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mapping.pair'))
 replacements = []
 for line in fin.readlines():
     tok_from, tok_to = line.replace('\n', '').split('\t')
@@ -78,7 +77,7 @@ def normalize(text):
     # replace time and and price
     text = re.sub(timepat, ' [value_time] ', text)
     text = re.sub(pricepat, ' [value_price] ', text)
-    #text = re.sub(pricepat2, '[value_price]', text)
+    # text = re.sub(pricepat2, '[value_price]', text)
 
     # replace st.
     text = text.replace(';', ',')
@@ -242,14 +241,15 @@ def sentence_bleu_4(hyp, refs, weights=[0.25, 0.25, 0.25, 0.25]):
 
     return bleu_hyp
 
+
 if __name__ == '__main__':
     text = "restaurant's CB39AL one seven"
     text = "I'm I'd restaurant's CB39AL 099939399 one seven"
     text = "ndd 19.30 nndd"
-    #print re.match("(\d+).(\d+)", text)
+    # print re.match("(\d+).(\d+)", text)
     m = re.findall("(\d+\.\d+)", text)
     print(m)
-    #print m[0].strip('.')
+    # print m[0].strip('.')
     print(re.sub('\.', '', m[0]))
-    #print m.groups()
-    #print text
+    # print m.groups()
+    # print text

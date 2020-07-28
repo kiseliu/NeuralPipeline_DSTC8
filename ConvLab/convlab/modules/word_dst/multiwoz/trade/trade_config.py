@@ -23,5 +23,3 @@ if args["load_embedding"]:
 #     args["addName"] += "Except"+args["except_domain"]
 # if args["only_domain"] != "":
 #     args["addName"] += "Only"+args["only_domain"]
-
-

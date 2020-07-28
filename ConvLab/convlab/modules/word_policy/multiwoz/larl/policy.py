@@ -28,8 +28,6 @@ from nltk import word_tokenize
 from torch.autograd import Variable
 import pickle
 
-
-
 TEACH_FORCE = 'teacher_forcing'
 TEACH_GEN = 'teacher_gen'
 GEN = 'gen'
@@ -169,9 +167,9 @@ def mark_not_mentioned(state):
             continue
         try:
             # if len([s for s in state[domain]['semi'] if s != 'book' and state[domain]['semi'][s] != '']) > 0:
-                # for s in state[domain]['semi']:
-                #     if s != 'book' and state[domain]['semi'][s] == '':
-                #         state[domain]['semi'][s] = 'not mentioned'
+            # for s in state[domain]['semi']:
+            #     if s != 'book' and state[domain]['semi'][s] == '':
+            #         state[domain]['semi'][s] = 'not mentioned'
             for s in state[domain]['semi']:
                 if state[domain]['semi'][s] == '':
                     state[domain]['semi'][s] = 'not mentioned'
@@ -183,7 +181,7 @@ def mark_not_mentioned(state):
 
 def get_summary_bstate(bstate):
     """Based on the mturk annotations we form multi-domain belief state"""
-    domains = [u'taxi', u'restaurant',  u'hospital',
+    domains = [u'taxi', u'restaurant', u'hospital',
                u'hotel', u'attraction', u'train', u'police']
     summary_bstate = []
     for domain in domains:
@@ -212,7 +210,8 @@ def get_summary_bstate(bstate):
             slot_enc = [0, 0, 0]
             if bstate[domain]['semi'][slot] == 'not mentioned':
                 slot_enc[0] = 1
-            elif bstate[domain]['semi'][slot] == 'dont care' or bstate[domain]['semi'][slot] == 'dontcare' or bstate[domain]['semi'][slot] == "don't care":
+            elif bstate[domain]['semi'][slot] == 'dont care' or bstate[domain]['semi'][slot] == 'dontcare' or \
+                    bstate[domain]['semi'][slot] == "don't care":
                 slot_enc[1] = 1
             elif bstate[domain]['semi'][slot]:
                 slot_enc[2] = 1
@@ -345,10 +344,9 @@ class LaRLPolicy(SysPolicy):
         self.dic = pickle.load(
             open(os.path.join(temp_path, 'larl_model/svdic.pkl'), 'rb'))
 
-
     def reset():
         self.prev_state = init_state()
-        
+
     def input_index2word(self, index):
         # if self.input_lang_index2word.has_key(index):
         if index in self.input_lang_index2word:
@@ -387,7 +385,7 @@ class LaRLPolicy(SysPolicy):
     def extract_short_ctx(self, context, context_lens, backward_size=1):
         utts = []
         for b_id in range(context.shape[0]):
-            utts.append(context[b_id, context_lens[b_id]-1])
+            utts.append(context[b_id, context_lens[b_id] - 1])
         return np.array(utts)
 
     def get_active_domain(self, prev_active_domain, prev_state, state):
@@ -433,7 +431,7 @@ class LaRLPolicy(SysPolicy):
         for turn in history[s_idx: e_idx]:
             # turn = pad_to(config.max_utt_len, turn, do_pad=False)
             context.append(turn)
-            
+
         if len(state['history']) == 1:
             self.prev_state = init_state()
 
@@ -452,7 +450,6 @@ class LaRLPolicy(SysPolicy):
 
         top_results, num_results = None, None
         for usr in context:
-
             words = usr.split()
 
             usr = delexicalize.delexicalise(' '.join(words), self.dic)
@@ -564,7 +561,8 @@ class LaRLPolicy(SysPolicy):
                             else:
                                 response.append(token)
                     elif slot == 'time':
-                        if 'arrive' in ' '.join(response[-3:]) or 'arrival' in ' '.join(response[-3:]) or 'arriving' in ' '.join(response[-3:]):
+                        if 'arrive' in ' '.join(response[-3:]) or 'arrival' in ' '.join(
+                                response[-3:]) or 'arriving' in ' '.join(response[-3:]):
                             if active_domain is not None and 'arriveBy' in top_results[active_domain]:
                                 # print('{} -> {}'.format(token, top_results[active_domain]['arriveBy']))
                                 response.append(
@@ -577,7 +575,8 @@ class LaRLPolicy(SysPolicy):
                                     response.append(
                                         state[d]['semi']['arriveBy'])
                                     break
-                        elif 'leave' in ' '.join(response[-3:]) or  'leaving' in ' '.join(response[-3:]) or 'departure' in ' '.join(response[-3:]):
+                        elif 'leave' in ' '.join(response[-3:]) or 'leaving' in ' '.join(
+                                response[-3:]) or 'departure' in ' '.join(response[-3:]):
                             if active_domain is not None and 'leaveAt' in top_results[active_domain]:
                                 # print('{} -> {}'.format(token, top_results[active_domain]['leaveAt']))
                                 response.append(
@@ -657,7 +656,7 @@ class LaRLPolicy(SysPolicy):
                         if slot == 'phone':
                             response.append('01223358963')
                         elif slot == 'name':
-                            response.append('Korean BBQ')        
+                            response.append('Korean BBQ')
                         elif slot == 'postcode':
                             response.append('533482')
                     elif domain == 'train':
@@ -764,7 +763,7 @@ def get_sent(vocab, de_tknize, data, b_id, stop_eos=True, stop_pad=True):
 
 def pad_to(max_len, tokens, do_pad):
     if len(tokens) >= max_len:
-        return tokens[: max_len-1] + [tokens[-1]]
+        return tokens[: max_len - 1] + [tokens[-1]]
     elif do_pad:
         return tokens + [0] * (max_len - len(tokens))
     else:
@@ -816,10 +815,9 @@ def prepare_batch_gen(rows, config):
 
 
 if __name__ == '__main__':
-
     domain_name = 'object_division'
     domain_info = domain.get_domain(domain_name)
-    
+
     train_data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data/norm-multi-woz/train_dials.json')
 
     config = Pack(
@@ -921,4 +919,5 @@ if __name__ == '__main__':
 
     response = cur_model.predict(state)
     import pprint as pp
+
     pp.pprint(response)

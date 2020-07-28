@@ -1,10 +1,12 @@
 import numpy as np
-from convlab.modules.word_policy.multiwoz.larl.latent_dialog.enc2dec.decoders import TEACH_FORCE, GEN, DecoderRNN, GEN_VALID
+from convlab.modules.word_policy.multiwoz.larl.latent_dialog.enc2dec.decoders import TEACH_FORCE, GEN, DecoderRNN, \
+    GEN_VALID
 from collections import Counter
 
 
 class UniquenessSentMetric(object):
     """Metric that evaluates the number of unique sentences."""
+
     def __init__(self):
         self.seen = set()
         self.all_sents = []
@@ -22,6 +24,7 @@ class UniquenessSentMetric(object):
 
 class UniquenessWordMetric(object):
     """Metric that evaluates the number of unique sentences."""
+
     def __init__(self):
         self.seen = set()
 
@@ -69,13 +72,13 @@ def record_ppl_with_lm(n_epsd, model, data, config, lm_model, ppl_f):
         pred_labels = [t.cpu().data.numpy() for t in outputs[DecoderRNN.KEY_SEQUENCE]]
         pred_labels = np.array(pred_labels, dtype=int).squeeze(-1).swapaxes(0, 1)  # (batch_size, max_dec_len)
         # clean up the pred labels
-        clean_pred_labels = np.zeros((pred_labels.shape[0], pred_labels.shape[1]+1))
+        clean_pred_labels = np.zeros((pred_labels.shape[0], pred_labels.shape[1] + 1))
         clean_pred_labels[:, 0] = model.sys_id
         for b_id in range(pred_labels.shape[0]):
             for t_id in range(pred_labels.shape[1]):
                 token = pred_labels[b_id, t_id]
                 clean_pred_labels[b_id, t_id + 1] = token
-                if token in [model.eos_id] or t_id == pred_labels.shape[1]-1:
+                if token in [model.eos_id] or t_id == pred_labels.shape[1] - 1:
                     break
 
         pred_out_lens = np.sum(np.sign(clean_pred_labels), axis=1)

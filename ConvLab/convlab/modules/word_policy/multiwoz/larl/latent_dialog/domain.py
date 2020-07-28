@@ -6,7 +6,7 @@ import json
 def get_domain(name):
     if name == 'object_division':
         return ObjectDivisionDomain()
-    raise()
+    raise ()
 
 
 class ObjectDivisionDomain(object):
@@ -33,6 +33,7 @@ class ObjectDivisionDomain(object):
                 choices += gen(cnts, idx + 1, choice)
                 choice.pop()
             return choices
+
         choices = gen(cnts)
         choices.append(['<no_agreement>'] * self.selection_length())
         choices.append(['<disconnect>'] * self.selection_length())
@@ -67,6 +68,7 @@ class ObjectDivisionDomain(object):
 
 class ContextGenerator(object):
     """Dialogue context generator. Generates contexes from the file."""
+
     def __init__(self, context_file):
         self.ctxs = []
         with open(context_file, 'r') as f:
@@ -88,11 +90,12 @@ class ContextGenerator(object):
                 yield ctx
 
     def total_size(self, nepoch):
-        return nepoch*len(self.ctxs)
+        return nepoch * len(self.ctxs)
 
 
 class ContextGeneratorEval(object):
     """Dialogue context generator. Generates contexes from the file."""
+
     def __init__(self, context_file):
         self.ctxs = []
         with open(context_file, 'r') as f:
@@ -120,5 +123,3 @@ class TaskGoalGenerator(object):
             random.shuffle(self.goals)
             for goal in self.goals:
                 yield goal
-
-

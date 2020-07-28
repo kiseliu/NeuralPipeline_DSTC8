@@ -4,6 +4,7 @@ from collections import OrderedDict
 
 class NumericMetric(object):
     """Base class for a numeric metric."""
+
     def __init__(self):
         self.k = 0
         self.n = 0
@@ -22,18 +23,21 @@ class NumericMetric(object):
 
 class AverageMetric(NumericMetric):
     """Average."""
+
     def show(self):
         return '%.2f' % (1. * self.value())
 
 
 class PercentageMetric(NumericMetric):
     """Percentage."""
+
     def show(self):
         return '%2.2f%%' % (100. * self.value())
 
 
 class TimeMetric(object):
     """Time based metric."""
+
     def __init__(self):
         self.t = 0
         self.n = 0
@@ -55,6 +59,7 @@ class TimeMetric(object):
 
 class UniquenessMetric(object):
     """Metric that evaluates the number of unique sentences."""
+
     def __init__(self):
         self.seen = set()
 
@@ -73,6 +78,7 @@ class UniquenessMetric(object):
 
 class TextMetric(object):
     """Text based metric."""
+
     def __init__(self, text):
         self.text = text
         self.k = 0
@@ -91,6 +97,7 @@ class TextMetric(object):
 
 class NGramMetric(TextMetric):
     """Metric that evaluates n grams."""
+
     def __init__(self, text, ngram=-1):
         super(NGramMetric, self).__init__(text)
         self.ngram = ngram
@@ -106,6 +113,7 @@ class NGramMetric(TextMetric):
 
 class MetricsContainer(object):
     """A container that stores and updates several metrics."""
+
     def __init__(self):
         self.metrics = OrderedDict()
 

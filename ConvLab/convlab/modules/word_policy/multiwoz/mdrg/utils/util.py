@@ -55,9 +55,9 @@ def loadDialogue(model, val_file, input_tensor, target_tensor, bs_tensor, db_ten
     return input_tensor, target_tensor, bs_tensor, db_tensor
 
 
-#json loads strings as unicode; we currently still work with Python 2 strings, and need conversion
+# json loads strings as unicode; we currently still work with Python 2 strings, and need conversion
 def unicode_to_utf8(d):
-    return dict((key.encode("UTF-8"), value) for (key,value) in d.items())
+    return dict((key.encode("UTF-8"), value) for (key, value) in d.items())
 
 
 def load_dict(filename):

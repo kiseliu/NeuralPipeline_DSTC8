@@ -175,7 +175,7 @@ def warmup_epsilon_greedy(state, algorithm, body):
     action = default(state, algorithm, body)
 
     if util.in_eval_lab_modes():
-        return action 
+        return action
 
     epsilon = body.explore_var
     if epsilon > np.random.rand():
@@ -185,21 +185,21 @@ def warmup_epsilon_greedy(state, algorithm, body):
             action = rule_guide(body.state, algorithm, body)
         else:
             action = rule_guide(state, algorithm, body)
-    return action 
+    return action
 
 
 def warmup_default(state, algorithm, body):
     action = default(state, algorithm, body)
 
     if util.in_eval_lab_modes():
-        return action 
+        return action
 
     if body.env.clock.epi < algorithm.warmup_epi:
         if hasattr(body, 'state'):
             action = rule_guide(body.state, algorithm, body)
         else:
             action = rule_guide(state, algorithm, body)
-    return action 
+    return action
 
 
 def rule_guide(state, algorithm, body):
@@ -209,6 +209,7 @@ def rule_guide(state, algorithm, body):
     probs[action] = 1
     action = torch.tensor(action, device=algorithm.net.device)
     return action
+
 
 # multi-body/multi-env action_policy used by agent
 # TODO rework
@@ -223,7 +224,8 @@ def multi_default(states, algorithm, body_list, pdparam):
     action_a = self.action_policy(pdparam, self, body_list)
     '''
     # assert pdparam has been chunked
-    assert len(pdparam.shape) > 1 and len(pdparam) == len(body_list), f'pdparam shape: {pdparam.shape}, bodies: {len(body_list)}'
+    assert len(pdparam.shape) > 1 and len(pdparam) == len(
+        body_list), f'pdparam shape: {pdparam.shape}, bodies: {len(body_list)}'
     action_list = []
     for idx, sub_pdparam in enumerate(pdparam):
         body = body_list[idx]
@@ -246,7 +248,8 @@ def multi_random(states, algorithm, body_list, pdparam):
 
 def multi_epsilon_greedy(states, algorithm, body_list, pdparam):
     '''Apply epsilon-greedy policy body-wise'''
-    assert len(pdparam) > 1 and len(pdparam) == len(body_list), f'pdparam shape: {pdparam.shape}, bodies: {len(body_list)}'
+    assert len(pdparam) > 1 and len(pdparam) == len(
+        body_list), f'pdparam shape: {pdparam.shape}, bodies: {len(body_list)}'
     action_list = []
     for idx, sub_pdparam in enumerate(pdparam):
         body = body_list[idx]
@@ -263,7 +266,8 @@ def multi_epsilon_greedy(states, algorithm, body_list, pdparam):
 
 def multi_boltzmann(states, algorithm, body_list, pdparam):
     '''Apply Boltzmann policy body-wise'''
-    assert len(pdparam) > 1 and len(pdparam) == len(body_list), f'pdparam shape: {pdparam.shape}, bodies: {len(body_list)}'
+    assert len(pdparam) > 1 and len(pdparam) == len(
+        body_list), f'pdparam shape: {pdparam.shape}, bodies: {len(body_list)}'
     action_list = []
     for idx, sub_pdparam in enumerate(pdparam):
         body = body_list[idx]
@@ -314,4 +318,3 @@ class VarScheduler:
         step = clock.get()
         val = self._updater(self.start_val, self.end_val, self.start_step, self.end_step, step)
         return val
-

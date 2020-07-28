@@ -33,7 +33,7 @@ class VanillaMLE(Model):
         super().__init__(vocab, regularizer)
         self.label_namespace = label_namespace
         self.input_dim = input_dim
-        self.num_classes = num_classes 
+        self.num_classes = num_classes
         self._verbose_metrics = verbose_metrics
         if dropout:
             self.dropout = torch.nn.Dropout(dropout)
@@ -41,15 +41,15 @@ class VanillaMLE(Model):
             self.dropout = None
         self._feedforward = feedforward
 
-        if self._feedforward is not None: 
+        if self._feedforward is not None:
             self.projection_layer = Linear(feedforward.get_output_dim(), self.num_classes)
         else:
             self.projection_layer = Linear(self.input_dim, self.num_classes)
 
         self.metrics = {
-                "accuracy": CategoricalAccuracy(),
-                "accuracy3": CategoricalAccuracy(top_k=3),
-                "accuracy5": CategoricalAccuracy(top_k=5)
+            "accuracy": CategoricalAccuracy(),
+            "accuracy3": CategoricalAccuracy(top_k=3),
+            "accuracy5": CategoricalAccuracy(top_k=5)
         }
         self._loss = torch.nn.CrossEntropyLoss()
 
@@ -85,7 +85,7 @@ class VanillaMLE(Model):
             output["loss"] = self._loss(logits, actions)
             for metric in self.metrics.values():
                 metric(logits, actions)
-        
+
         return output
 
     @overrides
@@ -95,7 +95,7 @@ class VanillaMLE(Model):
         """
         predictions = output_dict["probs"].detach().cpu().numpy()
         argmax_indices = np.argmax(predictions, axis=-1)
-        output_dict["actions"] = argmax_indices 
+        output_dict["actions"] = argmax_indices
 
         return output_dict
 

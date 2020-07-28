@@ -250,6 +250,7 @@ def dev_check_train_step(fn):
     def train_step(self, ...):
         ...
     '''
+
     @wraps(fn)
     def check_fn(*args, **kwargs):
         if not to_check_train_step():
@@ -273,13 +274,14 @@ def dev_check_train_step(fn):
         else:
             # check parameter updates
             try:
-                assert not all(torch.equal(w1, w2) for w1, w2 in zip(pre_params, post_params)), f'Model parameter is not updated in train_step(), check if your tensor is detached from graph. Loss: {loss:g}'
+                assert not all(torch.equal(w1, w2) for w1, w2 in zip(pre_params,
+                                                                     post_params)), f'Model parameter is not updated in train_step(), check if your tensor is detached from graph. Loss: {loss:g}'
                 logger.info(f'Model parameter is updated in train_step(). Loss: {loss: g}')
             except Exception as e:
                 logger.error(e)
                 if os.environ.get('PY_ENV') == 'test':
                     # raise error if in unit test
-                    raise(e)
+                    raise (e)
 
             # check grad norms
             min_norm, max_norm = 0.0, 1e5
@@ -294,6 +296,7 @@ def dev_check_train_step(fn):
         # store grad norms for debugging
         net.store_grad_norms()
         return loss
+
     return check_fn
 
 
